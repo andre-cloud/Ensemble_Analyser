@@ -1,6 +1,6 @@
 import numpy as np
 import os
-from scipy.integrate import trapezoid
+# from scipy.integrate import trapezoid
 import scipy.optimize as opt
 from scipy.constants import c, h, electron_volt, R
 import matplotlib.pyplot as plt
@@ -39,6 +39,8 @@ class Graph:
         self.uv_impulses = [self.get_uv(i) for i in self.spectra]
         self.ecd_impulses = [self.get_ecd(i) for i in self.spectra]
 
+
+        # creating the ECD and UV graph. If uv_ref.dat and/or ecd_ref.dat autoconvolution of the reference is performed
         if os.path.exists(os.path.join(os.getcwd(), 'ecd_ref.dat')):
             ecd = self.auto_convolution(os.path.join(os.getcwd(), 'ecd_ref.dat'), impulses=self.ecd_impulses, fname=f"ecd_protocol_{self.protocol.number}_auto_conv.dat") 
         else:
@@ -48,6 +50,7 @@ class Graph:
             uv = self.auto_convolution(os.path.join(os.getcwd(), 'uv_ref.dat'), impulses=self.ecd_impulses, fname=f"uv_protocol_{self.protocol.number}_auto_conv.dat") 
         else:
             uv = self.calc_graph(impulses=self.ecd_impulses, sigma=1/3, fname=f"uv_protocol_{self.protocol.number}.dat", save=True)
+
 
         Graph.damp_graph(f'ecd_protocol_{self.protocol.number}.dat', self.x, ecd)
         Graph.damp_graph(f'uv_protocol_{self.protocol.number}.dat', self.x, uv)
@@ -287,14 +290,14 @@ class Ref_graph:
 
         self.log = log
     
-    def integral(self) -> float: 
-        """
-        Calculate the area subtended by the curve
+    # def integral(self) -> float: 
+    #     """
+    #     Calculate the area subtended by the curve
          
-        return | float
-        """
+    #     return | float
+    #     """
 
-        return trapezoid(self.y, self.x)
+    #     return trapezoid(self.y, self.x)
     
     @property
     def x_min(self):
