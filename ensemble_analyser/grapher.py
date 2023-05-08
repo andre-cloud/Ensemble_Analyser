@@ -198,7 +198,7 @@ class Graph:
 
 
         confidence = 0.01
-        initial_guess = [0., 0.000001, confidence]
+        initial_guess = [0., -0.000001, confidence]
         self.log.debug(initial_guess)
         result = opt.minimize(optimiser, initial_guess, bounds=[(.2, 1/3), (-1, 1), (0.01, 0.01)], options={'maxiter':10000}, method='Powell')
         if result.success:
