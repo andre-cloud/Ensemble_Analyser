@@ -129,16 +129,15 @@ class Graph:
 
         # CONF do have frequency calculation before
         if self.protocol.freq:
-            ens = np.array([i.get_energy for i in self.confs])
+            pass
         elif self.confs[0].energies[n_1]['G']:
             # So energy is corrected: if functionals are the same, nothing change; else energy of the new function is corrected with lower frequency correction
-            ens = np.array([
-                i.energies[n]['E'] + (i.energies[n_1]['G'] - i.energies[n_1]['E'])
-                for i in self.confs
-                ])
+            for i in self.confs:
+                i.energies['G'] = i.energies[n]['E'] + (i.energies[n_1]['G'] - i.energies[n_1]['E'])
         else: 
             raise IOError('No frequency calculation')
 
+        ens = np.array([i.get_energy for i in self.confs])
         ens_rel = ens - min(ens)
         bolz = np.exp((-ens_rel*4186)/(R*T))
         pop = (bolz/np.sum(bolz))
@@ -165,12 +164,12 @@ class Graph:
         ref = Ref_graph(fname_ref, None)
         x_min, x_max = ref.x_min, ref.x_max
         ref.y = Graph.normalise(ref.y, norm=norm)
-        Graph.damp_graph(fname_ref_damp, ref.x, ref.y)
         # area_ref = trapezoid(a.y, a.x)
 
         # resampling the experimental data, in order to fetch the x_exp.size
         X = self.x.copy()
         Y_exp_interp = np.interp(X, ref.x, ref.y, left=0, right=0)
+        Graph.damp_graph(fname_ref_damp, X, Y_exp_interp)
 
 
         def optimiser(variables):
@@ -182,7 +181,7 @@ class Graph:
             # graphs[len(graphs)] = Y_comp
             
             # different with threshold
-            y = np.abs(Y_comp - Y_exp_interp)
+            y = np.abs(Y_comp - Y_exp_interp)[np.where(X>=x_min) & np.where(X<=x_max)]
             diff = np.sum(y[np.where((y>0) & (y>threshold))])
 
             # exp = np.array([[x,y] for x, y in zip(X, Y_exp_interp)])
