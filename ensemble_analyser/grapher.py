@@ -303,11 +303,11 @@ class Ref_graph:
     
     @property
     def x_min(self):
-        return min(self.x)
+        return float(min(self.x))
     
     @property
     def x_max(self):
-        return max(self.x)
+        return float(max(self.x))
     
 
 
