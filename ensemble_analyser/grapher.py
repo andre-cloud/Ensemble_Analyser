@@ -200,7 +200,7 @@ class Graph:
         confidence = 0.01
         initial_guess = [0.25, 0.000001, confidence]
         self.log.debug(initial_guess)
-        result = opt.minimize(optimiser, initial_guess, bounds=[(.05, 0.8), (-2, 2), (0.01, 0.01)], options={'maxiter':10000}, method='Nelder-Mead')
+        result = opt.minimize(optimiser, initial_guess, bounds=[(.05, 0.8), (-2, 2), (0.01, 0.01)], options={'maxiter':10000}, method='Powell')
         if result.success:
             sigma, shift, thr = result.x
             self.log.info(f'Convergence of parameters succeeded within a threshold of {thr:.2f}u.a. for the ∆ε. Confidence level: {(1-result.fun/(2*X[np.where((X>=x_min) & (X<=x_max))].size))*100:.2f}%. Parameters obtained\n\t- σ = {sigma:.4f} eV (that correspond to a FWHM = {(sigma*np.sqrt(2*np.log(2))*2):.4f} eV)\n\t- Δ = {shift:.4f} eV (in this case, a negative shift corresponds to a RED-shift)')
