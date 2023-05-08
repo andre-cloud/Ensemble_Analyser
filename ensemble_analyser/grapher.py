@@ -182,9 +182,12 @@ class Graph:
             # graphs[len(graphs)] = Y_comp
             
             # different with threshold
-            y = np.abs(Y_comp - Y_exp_interp)
-            y = y[np.argwhere((X>=x_min) & (X<=x_max))]
-            diff = np.sum(y[np.where((y>0) & (y>threshold))])
+            # y = np.abs(Y_comp - Y_exp_interp)
+            # y = y[np.argwhere((X>=x_min) & (X<=x_max))]
+            # diff = np.sum(y[np.where((y>0) & (y>threshold))])
+
+            # RMSD calculation
+            rmsd = np.sqrt(np.mean(( Y_comp - Y_exp_interp )**2))
 
             # exp = np.array([[x,y] for x, y in zip(X, Y_exp_interp)])
             # comp = np.array([[x,y] for x, y in zip(X, Y_comp)])
@@ -194,7 +197,7 @@ class Graph:
             # diff = (diff_area_pos*trapezoid(exp[exp[:, 1]>0][:, 0], exp[exp[:, 1]>0][:, 1])) + diff_area_neg*trapezoid(exp[exp[:, 1]<0][:, 0], exp[exp[:, 1]<0][:, 1])/ (trapezoid(exp[exp[:, 1]>0][:, 0], exp[exp[:, 1]>0][:, 1]) + trapezoid(exp[exp[:, 1]<0][:, 0], exp[exp[:, 1]<0][:, 1]) )
 
             # print(sigma, shift, threshold, diff)
-            return diff
+            return rmsd
 
 
         confidence = 0.01
