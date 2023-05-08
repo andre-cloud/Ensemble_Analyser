@@ -183,10 +183,10 @@ class Graph:
             
             # different with threshold
             y = np.abs(Y_comp - Y_exp_interp)
-            self.log(y)
-            self.log(f'{x_min} {x_max}')
+            self.log.debug(y)
+            self.log.debug(f'{x_min} {x_max}')
             y = y[np.where(X>=x_min) & np.where(X<=x_max)]
-            self.log(y)
+            self.log.debug(y)
             diff = np.sum(y[np.where((y>0) & (y>threshold))])
 
             # exp = np.array([[x,y] for x, y in zip(X, Y_exp_interp)])
