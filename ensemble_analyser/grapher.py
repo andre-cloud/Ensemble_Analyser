@@ -155,6 +155,7 @@ class Graph:
         Optimization "Fitness Function" is the sum of the absolute value of the differences between the computed and the experimental graph that lay above the threshold.
 
         fname_ref | str : filename of the reference file
+        fname_ref_damp | str : filename to save the autoconvoluted graph
         impulses | np.array((eV, I)) : list of single excitation [eV, I] where I can be a UV or ECD excitation
         fname | str : filename to save the final convoluted graph
 
@@ -197,7 +198,7 @@ class Graph:
 
 
         confidence = 0.01
-        initial_guess = [1/3, -0.5, confidence]
+        initial_guess = [0.25, -np.random.random(), confidence]
         result = opt.minimize(optimiser, initial_guess, bounds=[(.05, 0.8), (-2, 2), (0.01, 0.01)])
         if result.success:
             sigma, shift, thr = result.x
@@ -205,7 +206,7 @@ class Graph:
             Y_COMP = Graph.normalise(self.calc_graph(impulses=impulses, shift=shift, sigma=sigma, save=True, fname=fname), norm=norm)
         else:
             self.log.info(f'Convergence of parameters NOT succeeded within a threshold of {confidence:.2f}u.a. for the ∆ε. Parameters used to convolute the saved graph\n\t- σ = {initial_guess[0]:.4f} eV (that correspond to a FWHM = {(initial_guess[0]*np.sqrt(2*np.log(2))*2):.4f} eV)\n\t- Δ = 0.0000 eV')
-            Y_COMP = Graph.normalise(self.calc_graph(impulses=impulses, shift=0, sigma=initial_guess[0], save=True, fname=fname), norm=norm)
+            Y_COMP = Graph.normalise(self.calc_graph(impulses=impulses, shift=0, sigma=1/3, save=True, fname=fname), norm=norm)
 
         return Y_COMP
 
