@@ -182,7 +182,8 @@ class Graph:
             # graphs[len(graphs)] = Y_comp
             
             # different with threshold
-            y = np.abs(Y_comp - Y_exp_interp)[np.where(X>=x_min) & np.where(X<=x_max)]
+            y = np.abs(Y_comp - Y_exp_interp)
+            y = y[np.where(X>=x_min) & np.where(X<=x_max)]
             diff = np.sum(y[np.where((y>0) & (y>threshold))])
 
             # exp = np.array([[x,y] for x, y in zip(X, Y_exp_interp)])
