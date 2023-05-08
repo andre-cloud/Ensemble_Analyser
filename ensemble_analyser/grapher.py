@@ -197,14 +197,14 @@ class Graph:
 
 
         confidence = 0.01
-        initial_guess = [.3, -1, confidence]
-        result = opt.minimize(optimiser, initial_guess, bounds=[(.2, 0.8), (-2, 2), (0.01, 0.01)])
+        initial_guess = [.3, 0, confidence]
+        result = opt.minimize(optimiser, initial_guess, bounds=[(.15, 0.8), (-2, 2), (0.01, 0.01)])
         if result.success:
             sigma, shift, thr = result.x
-            self.log.info(f'Convergence of parameters succeeded within a threshold of {thr:.2f}u.a. for the ∆ε. Confidence level: {(1-result.fun/(2*X[np.where((X>=x_min) & (X<=x_max))].size))*100:.2f}%. Parameters obtained\n\t- σ = {sigma:.4f} eV (that correspond to a FWHM = {(sigma*np.sqrt(2*np.log(2))*2):.4f} eV\n\t- Δ = {shift:.4f} eV (in this case, a negative shift corresponds to a RED-shift)')
+            self.log.info(f'Convergence of parameters succeeded within a threshold of {thr:.2f}u.a. for the ∆ε. Confidence level: {(1-result.fun/(2*X[np.where((X>=x_min) & (X<=x_max))].size))*100:.2f}%. Parameters obtained\n\t- σ = {sigma:.4f} eV (that correspond to a FWHM = {(sigma*np.sqrt(2*np.log(2))*2):.4f} eV)\n\t- Δ = {shift:.4f} eV (in this case, a negative shift corresponds to a RED-shift)')
             Y_COMP = Graph.normalise(self.calc_graph(impulses=impulses, shift=shift, sigma=sigma, save=True, fname=fname), norm=norm)
         else:
-            self.log.info(f'Convergence of parameters NOT succeeded within a threshold of {confidence:.2f}u.a. for the ∆ε. Parameters used to convolute the saved graph\n\t- σ = {initial_guess[0]:.4f} eV (that correspond to a FWHM = {(initial_guess[0]*np.sqrt(2*np.log(2))*2):.4f} eV\n\t- Δ = 0.0000 eV')
+            self.log.info(f'Convergence of parameters NOT succeeded within a threshold of {confidence:.2f}u.a. for the ∆ε. Parameters used to convolute the saved graph\n\t- σ = {initial_guess[0]:.4f} eV (that correspond to a FWHM = {(initial_guess[0]*np.sqrt(2*np.log(2))*2):.4f} eV)\n\t- Δ = 0.0000 eV')
             Y_COMP = Graph.normalise(self.calc_graph(impulses=impulses, shift=0, sigma=initial_guess[0], save=True, fname=fname), norm=norm)
 
         return Y_COMP
