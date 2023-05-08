@@ -183,7 +183,7 @@ class Graph:
             
             # different with threshold
             y = np.abs(Y_comp - Y_exp_interp)
-            y = y[np.argwhere(X>=x_min & X<=x_max)]
+            y = y[np.argwhere((X>=x_min) & (X<=x_max))]
             self.log.debug(y)
             diff = np.sum(y[np.where((y>0) & (y>threshold))])
 
