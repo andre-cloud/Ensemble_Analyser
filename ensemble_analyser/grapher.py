@@ -178,7 +178,7 @@ class Graph:
             """
             sigma, shift, threshold = variables       
             Y_comp = Graph.normalise(self.calc_graph(impulses=impulses, shift=shift, sigma=sigma, save=False), norm=norm)
-            graphs[len(graphs)] = Y_comp
+            # graphs[len(graphs)] = Y_comp
             
             # different with threshold
             y = np.abs(Y_comp - Y_exp_interp)
