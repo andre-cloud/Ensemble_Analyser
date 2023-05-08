@@ -129,15 +129,16 @@ class Graph:
 
         # CONF do have frequency calculation before
         if self.protocol.freq:
-            pass
+            ens = np.array([i.get_energy for i in self.confs])
         elif self.confs[0].energies[n_1]['G']:
             # So energy is corrected: if functionals are the same, nothing change; else energy of the new function is corrected with lower frequency correction
-            for i in self.confs:
-                i.energies['G'] = i.energies[n]['E'] + (i.energies[n_1]['G'] - i.energies[n_1]['E'])
+            ens = np.array([
+                i.energies[n]['E'] + (i.energies[n_1]['G'] - i.energies[n_1]['E'])
+                for i in self.confs
+                ])
         else: 
             raise IOError('No frequency calculation')
 
-        ens = np.array([i.get_energy for i in self.confs])
         ens_rel = ens - min(ens)
         bolz = np.exp((-ens_rel*4186)/(R*T))
         pop = (bolz/np.sum(bolz))
