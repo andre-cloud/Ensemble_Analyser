@@ -42,12 +42,12 @@ class Graph:
 
         # creating the ECD and UV graph. If uv_ref.dat and/or ecd_ref.dat autoconvolution of the reference is performed
         if os.path.exists(os.path.join(os.getcwd(), 'ecd_ref.dat')):
-            ecd = self.auto_convolution(os.path.join(os.getcwd(), 'ecd_ref.dat'), impulses=self.ecd_impulses, fname=f"ecd_protocol_{self.protocol.number}_auto_conv.dat") 
+            ecd = self.auto_convolution(os.path.join(os.getcwd(), 'ecd_ref.dat'), fname_ref_damp=os.path.join(os.getcwd(), 'ecd_ref_norm_eV.dat'), impulses=self.ecd_impulses, fname=f"ecd_protocol_{self.protocol.number}_auto_conv.dat") 
         else:
             ecd = self.calc_graph(impulses=self.ecd_impulses, sigma=1/3, fname=f"ecd_protocol_{self.protocol.number}.dat", save=True)
         
         if os.path.exists(os.path.join(os.getcwd(), 'uv_ref.dat')):
-            uv = self.auto_convolution(os.path.join(os.getcwd(), 'uv_ref.dat'), impulses=self.ecd_impulses, fname=f"uv_protocol_{self.protocol.number}_auto_conv.dat") 
+            uv = self.auto_convolution(os.path.join(os.getcwd(), 'uv_ref.dat'), fname_ref_damp=os.path.join(os.getcwd(), 'uv_ref_norm_eV.dat'), impulses=self.ecd_impulses, fname=f"uv_protocol_{self.protocol.number}_auto_conv.dat") 
         else:
             uv = self.calc_graph(impulses=self.ecd_impulses, sigma=1/3, fname=f"uv_protocol_{self.protocol.number}.dat", save=True)
 
@@ -150,7 +150,7 @@ class Graph:
         return pop
 
     
-    def auto_convolution(self, fname_ref, impulses, fname, norm=1) -> np.array:
+    def auto_convolution(self, fname_ref, fname_ref_damp, impulses, fname, norm=1) -> np.array:
         """
         Optimization to find the best fitting values for the Gaussian convolution.
         Optimization "Fitness Function" is the sum of the absolute value of the differences between the computed and the experimental graph that lay above the threshold.
@@ -165,6 +165,7 @@ class Graph:
         ref = Ref_graph(fname_ref, None)
         x_min, x_max = ref.x_min, ref.x_max
         ref.y = Graph.normalise(ref.y, norm=norm)
+        Graph.damp_graph(fname_ref_damp, ref.x, ref.y)
         # area_ref = trapezoid(a.y, a.x)
 
         # resampling the experimental data, in order to fetch the x_exp.size
