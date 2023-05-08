@@ -198,7 +198,8 @@ class Graph:
 
 
         confidence = 0.01
-        initial_guess = [0.25, 0.1, confidence]
+        initial_guess = [0.25, 0.000001, confidence]
+        self.log.debug(initial_guess)
         result = opt.minimize(optimiser, initial_guess, bounds=[(.05, 0.8), (-2, 2), (0.01, 0.01)], options={'maxiter':10000})
         if result.success:
             sigma, shift, thr = result.x
