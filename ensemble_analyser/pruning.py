@@ -4,13 +4,17 @@ from ase.build import minimize_rotation_and_translation
 from scipy.constants import R
 from tabulate import tabulate
 import numpy as np
-from ensemble_analyser.ioFile import save_snapshot
 
 
-from ensemble_analyser.logger import DEBUG, ordinal
+try:
+    from ensemble_analyser.ioFile import save_snapshot
+    from ensemble_analyser.logger import DEBUG, ordinal
+except ImportError:
+    from ioFile import save_snapshot
+    from logger import DEBUG, ordinal
 
 
-def cut_over_thr_max(confs: list, thrGMAX: float, log) -> list:
+def cut_over_thr_max(confs: list, thrGMAX: float, log) -> None:
     """
     Get conformers over the threshold of the amx energy
 
@@ -49,7 +53,7 @@ def rmsd(check, ref) -> float:
     return np.sqrt(1/len(ref.get_positions())) * np.linalg.norm(np.array(ref_pos.get_positions())-np.array(check_pos.get_positions()))
 
 
-def dict_compare(check, conf_ref, deactivate=True):
+def dict_compare(check, conf_ref, deactivate=True) -> dict:
     return {
         'Check': check.number,
         'Ref': conf_ref.number,
@@ -61,7 +65,7 @@ def dict_compare(check, conf_ref, deactivate=True):
     }
 
 
-def check(check, conf_ref, protocol, controller) -> bool:
+def check(check, conf_ref, protocol, controller: dict) -> bool:
     """
     Control conformer against a reference. Both the following asserts MUST be matched to deactivate the conformer: 
     1. B_check - B_reference < thrB
@@ -93,7 +97,7 @@ def check(check, conf_ref, protocol, controller) -> bool:
     return False
 
 
-def refactor_dict(controller):
+def refactor_dict(controller : dict) -> dict:
     """
     Refactor dictionaries in order to print the correct table
     {'1': {a: 1, b: 2}, '2' : {a: 3, b: 4}} -> {a : {'1': 1, '2': 3}, b : {'1': 2, '2': 4}}
@@ -115,7 +119,7 @@ def refactor_dict(controller):
     return d
 
 
-def check_ensemble(confs, protocol, log) -> list:
+def check_ensemble(confs : list, protocol, log) -> list:
     """
     Check the ensemble
     1. Over energy threshold
@@ -156,7 +160,7 @@ def check_ensemble(confs, protocol, log) -> list:
     return confs
 
 
-def calculate_rel_energies(conformers, T) -> None:
+def calculate_rel_energies(conformers: list, T: float) -> None:
     """
     Relative energy
 

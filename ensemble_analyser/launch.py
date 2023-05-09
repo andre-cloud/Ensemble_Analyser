@@ -1,14 +1,26 @@
 
-
-from ensemble_analyser.conformer import Conformer
-from ensemble_analyser.ioFile import read_ensemble, save_snapshot
-from ensemble_analyser.logger import create_log, ordinal
-from ensemble_analyser.parser_arguments import parser_arguments
-from ensemble_analyser.parser_parameter import get_conf_parameters
-from ensemble_analyser.IOsystem import SerialiseEncoder
-from ensemble_analyser.protocol import Protocol, load_protocol
-from ensemble_analyser.pruning import calculate_rel_energies, check_ensemble
-from ensemble_analyser.grapher import Graph
+try:
+    from ensemble_analyser.conformer import Conformer
+    from ensemble_analyser.ioFile import read_ensemble, save_snapshot
+    from ensemble_analyser.logger import create_log, ordinal
+    from ensemble_analyser.parser_arguments import parser_arguments
+    from ensemble_analyser.parser_parameter import get_conf_parameters
+    from ensemble_analyser.IOsystem import SerialiseEncoder
+    from ensemble_analyser.protocol import Protocol, load_protocol
+    from ensemble_analyser.pruning import calculate_rel_energies, check_ensemble
+    from ensemble_analyser.grapher import Graph
+    from ensemble_analyser.clustering import perform_PCA
+except ImportError:
+    from conformer import Conformer
+    from ioFile import read_ensemble, save_snapshot
+    from logger import create_log, ordinal
+    from parser_arguments import parser_arguments
+    from parser_parameter import get_conf_parameters
+    from IOsystem import SerialiseEncoder
+    from protocol import Protocol, load_protocol
+    from pruning import calculate_rel_energies, check_ensemble
+    from grapher import Graph
+    from clustering import perform_PCA
 
 import ase
 import time, json
@@ -104,10 +116,13 @@ def run_protocol(conformers, p, temperature, cpu, log) -> None:
     create_summary('Summary', conformers, log)
     log.info('\nTotal elapsed time: ' + str(datetime.timedelta(seconds = sum([i._last_energy['time'] for i in conformers if i.active]))))
 
+    perform_PCA([i for i in conformers if i.active], 5, f'PCA_before_pruning_protocol_{p.number}.png', f'PCA before pruning protocol {p.number}', log)
+
     log.debug('Start Pruning')
     conformers = check_ensemble(conformers, p, log)
     save_snapshot(f'ensemble_after_{p.number}.xyz', conformers, log)
 
+    perform_PCA([i for i in conformers if i.active], 5, f'PCA_after_pruning_protocol_{p.number}.png', f'PCA after pruning protocol {p.number}', log)
 
     create_summary('Summary After Pruning', conformers, log)
 

@@ -1,5 +1,8 @@
 
-from ensemble_analyser.IOsystem import mkdir
+try:
+    from ensemble_analyser.IOsystem import mkdir
+except ImportError:
+    from IOsystem import mkdir
 
 import numpy as np
 from ase.atoms import Atoms
@@ -11,7 +14,7 @@ class Conformer:
     
     '''
 
-    def __init__(self, number: int, geom: np.array, atoms: np.array, charge : int= 0, mult : int = 1, raw=False) -> None:
+    def __init__(self, number: int, geom: np.ndarray, atoms: np.ndarray, charge : int= 0, mult : int = 1, raw=False) -> None:
         self.number = number
         self._initial_geometry = geom
         self.charge = charge

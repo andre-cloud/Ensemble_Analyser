@@ -2,8 +2,13 @@
 
 import re, os
 import numpy as np
-from ensemble_analyser.regex_parsing import regex_parsing
-from ensemble_analyser.rrho import free_gibbs_energy
+
+try:
+    from ensemble_analyser.regex_parsing import regex_parsing
+    from ensemble_analyser.rrho import free_gibbs_energy
+except ImportError:
+    from regex_parsing import regex_parsing
+    from rrho import free_gibbs_energy
 
 EH_TO_KCAL = 627.5096080305927
 
@@ -15,9 +20,13 @@ def get_param(x, calculator, param):
         return x
 
 
-def get_freq(fl, calc):
+def get_freq(fl : str, calc : str) -> np.ndarray:
     """
     Parsing for frequencies
+
+    fl | str : piece of log file
+    calc | str : calculator type
+    return | np.array : frequency [cm-1]
     """
 
     fl = '\n'.join(''.join(fl).split(regex_parsing[calc]['s_freq'])[-1].strip().splitlines()[4:]).split(regex_parsing[calc]['e_freq'])[0].strip().splitlines()
@@ -25,7 +34,7 @@ def get_freq(fl, calc):
     return freq
 
 
-def get_conf_parameters(conf, number, p, time, temp, log) -> bool:
+def get_conf_parameters(conf, number : int, p, time, temp : float, log) -> bool:
     """
     Obtain the parameters for a conformer: E, G, B, m
     

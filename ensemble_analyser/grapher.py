@@ -1,12 +1,13 @@
 import numpy as np
 import os
-# from scipy.integrate import trapezoid
 import scipy.optimize as opt
 from scipy.constants import c, h, electron_volt, R
 import matplotlib.pyplot as plt
 
-
-from ensemble_analyser.regex_parsing import regex_parsing
+try:
+    from ensemble_analyser.regex_parsing import regex_parsing
+except ImportError:
+    from regex_parsing import regex_parsing
 
 FACTOR_EV_NM = h*c/(10**-9*electron_volt)
 
@@ -99,7 +100,7 @@ class Graph:
         return [(FACTOR_EV_NM/float(i.strip().split()[regex_parsing[self.protocol.calculator]['idx_en_ECD']]), float(i.strip().split()[regex_parsing[self.protocol.calculator]['idx_imp_ECD']])) for i in graph.splitlines() if i]
 
     @staticmethod
-    def gaussian(x, ev, I, sigma) -> np.array:
+    def gaussian(x, ev, I, sigma) -> np.ndarray:
         """
         Create a gaussian convolution for each impulse 
 
@@ -113,7 +114,7 @@ class Graph:
         """
         return I/(sigma*np.sqrt(2*np.pi)) * np.exp(-0.5*((x-ev)/sigma)**2)
 
-    def calc_pop(self, T):
+    def calc_pop(self, T) -> np.ndarray:
         """
         Boltzmann population, if necessary with correction
 
@@ -149,7 +150,7 @@ class Graph:
         return pop
 
     
-    def auto_convolution(self, fname_ref, fname_ref_damp, impulses, fname, norm=1) -> np.array:
+    def auto_convolution(self, fname_ref, fname_ref_damp, impulses, fname, norm=1) -> np.ndarray:
         """
         Optimization to find the best fitting values for the Gaussian convolution.
         Optimization "Fitness Function" is the sum of the absolute value of the differences between the computed and the experimental graph that lay above the threshold.
@@ -216,7 +217,7 @@ class Graph:
         return Y_COMP
 
 
-    def calc_graph(self, impulses, sigma, shift = 0, fname = '', save=False):
+    def calc_graph(self, impulses, sigma, shift = 0, fname = '', save=False) -> np.ndarray:
         """
         Build the Spectra 
 
@@ -249,7 +250,7 @@ class Graph:
 
 
     @staticmethod
-    def damp_graph(fname, x, y):
+    def damp_graph(fname : str, x : np.ndarray, y : np.ndarray) -> None:
         """
         Damp an xy graph into file 
 
@@ -272,7 +273,7 @@ class Graph:
     
 
     @staticmethod
-    def normalise(y, norm=1) -> np.array: 
+    def normalise(y : np.ndarray, norm=1) -> np.array: 
         """
         Normalize an ensemble between 1 and -1, if not set otherwise.
 
@@ -289,7 +290,7 @@ class Graph:
 
 class Ref_graph:
 
-    def __init__(self, fname, log, is_ev : bool = False):
+    def __init__(self, fname : str, log, is_ev : bool = False):
 
         data = np.loadtxt(fname, dtype=float)
         self.x = data[:, 0] if is_ev else FACTOR_EV_NM/data[:, 0]

@@ -16,7 +16,7 @@ AMU_TO_KG = physical_constants['atomic mass constant'][0]
 # J_TO_H = 2.2937122783963e+17 Eh/J
 # AMU_TO_KG = 1.6605390666e-27 kg*mol/g
 
-def calc_damp(frequency: np.array, cut_off: float, alpha: int) -> np.array:
+def calc_damp(frequency: np.ndarray, cut_off: float, alpha: int) -> np.ndarray:
     """
     Damping factor proportionate to frequency
     1/(1+(cut_off/ν)^α)
@@ -27,7 +27,7 @@ def calc_damp(frequency: np.array, cut_off: float, alpha: int) -> np.array:
 
 
 
-def calc_zpe(frequency: np.array = np.array([0])) -> float: 
+def calc_zpe(frequency: np.ndarray = np.array([0])) -> float: 
     """
     Calculate the Zero Point Energy
 
@@ -58,7 +58,7 @@ def calc_rotational_energy(T:float, linear=False) -> float:
     return 1.5*Boltzmann*T * J_TO_H
 
 
-def calc_qRRHO_energy(freq: np.array, T: float) -> np.array:
+def calc_qRRHO_energy(freq: np.ndarray, T: float) -> np.ndarray:
     """
     quasi-Rigid Rotor Harmonic Oscillator energy
 
@@ -71,7 +71,7 @@ def calc_qRRHO_energy(freq: np.array, T: float) -> np.array:
 
 
 
-def calc_vibrational_energy(freq : np.array, T : float, cut_off : float, alpha : int):
+def calc_vibrational_energy(freq : np.ndarray, T : float, cut_off : float, alpha : int) -> float:
     """
     Damp the energy in proportion to the frequency
     
@@ -190,10 +190,10 @@ def calc_electronic_entropy(m) -> float:
 
 
 def free_gibbs_energy(
-        SCF : float, T : float, freq : np.array, mw: float, B: np.array, m:int,
+        SCF : float, T : float, freq : np.ndarray, mw: float, B: np.ndarray, m:int,
         
         # defaults 
-        linear : bool =False, cut_off=100, alpha=4,  P: float = 101.325):
+        linear : bool =False, cut_off=100, alpha=4,  P: float = 101.325) -> float:
     """
     SCF: self consistent field energy [Eh] + dispersions 
     T: temperature [K]

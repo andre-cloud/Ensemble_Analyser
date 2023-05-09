@@ -3,7 +3,7 @@ import shutil, json
 import os
 
 
-def _parse_xyz_str(fl) -> tuple:
+def _parse_xyz_str(fl : str) -> tuple:
     """
     Parse an xyz geom descriptor
 

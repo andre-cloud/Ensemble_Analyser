@@ -1,5 +1,10 @@
-from ensemble_analyser.IOsystem import _parse_xyz_str
-from ensemble_analyser.conformer import Conformer
+try:
+    from ensemble_analyser.IOsystem import _parse_xyz_str
+    from ensemble_analyser.conformer import Conformer
+except ImportError:
+    from IOsystem import _parse_xyz_str
+    from conformer import Conformer
+
 
 import os
 
