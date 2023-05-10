@@ -79,6 +79,7 @@ def save_PCA_snapshot(fname : str, title : str, pca_scores : np.ndarray, cluster
 
 def perform_PCA(confs : list, ncluster : int, fname : str, title : str, log) -> None: 
     log.info('Starting PCA analysis')
+    nc = ncluster if len(confs) > ncluster else len(ncluster)-1
     pca_scores, clusters = calc_pca(confs, ncluster=ncluster)
     save_PCA_snapshot(fname, title, pca_scores, clusters)
 
