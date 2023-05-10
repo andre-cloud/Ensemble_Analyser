@@ -1,7 +1,8 @@
 
 try:
     from src.IOsystem import mkdir
-except ImportError:
+except ImportError as e:
+    print(e)
     from IOsystem import mkdir
 
 import numpy as np

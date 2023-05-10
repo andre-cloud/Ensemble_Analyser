@@ -6,7 +6,8 @@ import numpy as np
 try:
     from src.regex_parsing import regex_parsing
     from src.rrho import free_gibbs_energy
-except ImportError:
+except ImportError as e:
+    print(e)
     from regex_parsing import regex_parsing
     from rrho import free_gibbs_energy
 

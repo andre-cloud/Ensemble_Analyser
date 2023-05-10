@@ -9,7 +9,8 @@ import numpy as np
 try:
     from src.ioFile import save_snapshot
     from src.logger import DEBUG, ordinal
-except ImportError:
+except ImportError as e:
+    print(e)
     from ioFile import save_snapshot
     from logger import DEBUG, ordinal
 

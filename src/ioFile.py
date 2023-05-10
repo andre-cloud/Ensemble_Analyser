@@ -1,7 +1,8 @@
 try:
     from src.IOsystem import _parse_xyz_str
     from src.conformer import Conformer
-except ImportError:
+except ImportError as e:
+    print(e)
     from IOsystem import _parse_xyz_str
     from conformer import Conformer
 

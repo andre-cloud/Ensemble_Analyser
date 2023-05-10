@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 
 try:
     from src.regex_parsing import regex_parsing
-except ImportError:
+except ImportError as e:
+    print(e)
     from regex_parsing import regex_parsing
 
 FACTOR_EV_NM = h*c/(10**-9*electron_volt)
@@ -347,7 +348,7 @@ if __name__ == '__main__':
     import scipy.optimize as opt
 
 
-    os.chdir('ensemble_analyser')
+    os.chdir('src')
 
     a = Ref_graph('../files/ecd_ref.txt', None)
     x_min, x_max = a.x_min, a.x_max
@@ -363,10 +364,35 @@ if __name__ == '__main__':
     computed = Test_Graph('../files/impulse.dat')
 
     graphs= {}
+    counter = 0
+
     def optimiser(variables):
+        global counter
         sigma, shift, threshold = variables       
         Y_comp = Graph.normalise(computed.calc_graph(shift, sigma))
         graphs[len(graphs)] = Y_comp
+        # graphs[len(graphs)] = Y_comp
+        
+        # different with threshold
+        # y = np.abs(Y_comp - Y_exp_interp)
+        # y = y[np.argwhere((X>=x_min) & (X<=x_max))]
+        # diff = np.sum(y[np.where((y>0) & (y>threshold))])
+
+        # RMSD calculation
+        rmsd = np.sqrt(np.mean(( Y_comp - Y_exp_interp )**2))
+
+        # exp = np.array([[x,y] for x, y in zip(X, Y_exp_interp)])
+        # comp = np.array([[x,y] for x, y in zip(X, Y_comp)])
+
+        # diff_area_pos = trapezoid(exp[exp[:, 1]>0][:, 0], exp[exp[:, 1]>0][:, 1]) - trapezoid(comp[comp[:, 1]>0][:, 0], comp[comp[:, 1]>0][:, 1])
+        # diff_area_neg = trapezoid(exp[exp[:, 1]<0][:, 0], exp[exp[:, 1]<0][:, 1]) - trapezoid(comp[comp[:, 1]<0][:, 0], comp[comp[:, 1]<0][:, 1])
+        # diff = (diff_area_pos*trapezoid(exp[exp[:, 1]>0][:, 0], exp[exp[:, 1]>0][:, 1])) + diff_area_neg*trapezoid(exp[exp[:, 1]<0][:, 0], exp[exp[:, 1]<0][:, 1])/ (trapezoid(exp[exp[:, 1]>0][:, 0], exp[exp[:, 1]>0][:, 1]) + trapezoid(exp[exp[:, 1]<0][:, 0], exp[exp[:, 1]<0][:, 1]) )
+
+        # print(sigma, shift, threshold, diff)
+        counter += 1
+        return rmsd
+        sigma, shift, threshold = variables       
+        Y_comp = Graph.normalise(computed.calc_graph(shift, sigma))
         
         # different with threshold
         y = np.abs(Y_comp - Y_exp_interp)
@@ -385,10 +411,10 @@ if __name__ == '__main__':
 
 
     confidence = 0.01
-    initial_guess = [.4, -1, confidence]
-    result = opt.minimize(optimiser, initial_guess, bounds=[(1/3, 0.8), (-2, 2), (0.01, 0.01)])#, method='Nelder-Mead')
+    initial_guess = [0.2, -0.000001, confidence]
+    result = opt.minimize(optimiser, initial_guess, bounds=[(.16, 1/5), (-1, 1), (0.01, 0.01)], options={'maxiter':10000}, method='Powell')
     if result.success:
-        print((result.x), result.fun, (1-result.fun/(2*X.size))*100)
+        print((result.x), result.fun, (1-result.fun/(2*X.size))*100, counter)
     else:
         print('NO')
 

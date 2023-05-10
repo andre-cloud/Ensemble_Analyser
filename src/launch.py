@@ -10,7 +10,8 @@ try:
     from src.pruning import calculate_rel_energies, check_ensemble
     from src.grapher import Graph
     from src.clustering import perform_PCA
-except ImportError:
+except ImportError as e:
+    print(e)
     from conformer import Conformer
     from ioFile import read_ensemble, save_snapshot
     from logger import create_log, ordinal
