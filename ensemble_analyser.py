@@ -1,7 +1,6 @@
 #!/data/bin/python_env/bin/python
 
-from ensemble_analyser.launch import main
-
+from src.launch import main
 
 
 

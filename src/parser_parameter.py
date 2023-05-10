@@ -4,8 +4,8 @@ import re, os
 import numpy as np
 
 try:
-    from ensemble_analyser.regex_parsing import regex_parsing
-    from ensemble_analyser.rrho import free_gibbs_energy
+    from src.regex_parsing import regex_parsing
+    from src.rrho import free_gibbs_energy
 except ImportError:
     from regex_parsing import regex_parsing
     from rrho import free_gibbs_energy
@@ -60,6 +60,7 @@ def get_conf_parameters(conf, number : int, p, time, temp : float, log) -> bool:
     freq = np.array([])
     if p.freq:
         freq = get_freq(fl, p.calculator) * p.freq_fact
+        log.info(f'{conf.number} has {freq[freq<0].size} imaginary frequency(s)')
         if freq.size == 0:
             log.error(('\n'.join(fl[-6:])).strip())
             log.critical(f"{'='*20}\nCRITICAL ERROR\n{'='*20}\nNo frequency present in the calculation output.\n{'='*20}\nExiting\n{'='*20}\n")

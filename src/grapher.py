@@ -5,7 +5,7 @@ from scipy.constants import c, h, electron_volt, R
 import matplotlib.pyplot as plt
 
 try:
-    from ensemble_analyser.regex_parsing import regex_parsing
+    from src.regex_parsing import regex_parsing
 except ImportError:
     from regex_parsing import regex_parsing
 

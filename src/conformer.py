@@ -1,6 +1,6 @@
 
 try:
-    from ensemble_analyser.IOsystem import mkdir
+    from src.IOsystem import mkdir
 except ImportError:
     from IOsystem import mkdir
 
@@ -16,12 +16,12 @@ class Conformer:
 
     def __init__(self, number: int, geom: np.ndarray, atoms: np.ndarray, charge : int= 0, mult : int = 1, raw=False) -> None:
         self.number = number
-        self._initial_geometry = geom
+        self._initial_geometry = geom.copy()
         self.charge = charge
         self.mult = mult
         
-        self.last_geometry = geom
-        self.atoms = atoms
+        self.last_geometry = geom.copy()
+        self.atoms = atoms.copy()
         self.energies = {}
         self.active = True
 
@@ -32,7 +32,7 @@ class Conformer:
     def get_ase_atoms(self, calc=None):
         return Atoms(
             symbols = ''.join(list(self.atoms)),
-            positions = self.last_geometry,
+            positions = self.last_geometry.copy(),
             calculator=calc
         )
 

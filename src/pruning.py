@@ -7,8 +7,8 @@ import numpy as np
 
 
 try:
-    from ensemble_analyser.ioFile import save_snapshot
-    from ensemble_analyser.logger import DEBUG, ordinal
+    from src.ioFile import save_snapshot
+    from src.logger import DEBUG, ordinal
 except ImportError:
     from ioFile import save_snapshot
     from logger import DEBUG, ordinal

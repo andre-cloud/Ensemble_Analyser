@@ -169,6 +169,17 @@ def calc_S_R_grimme(freq:np.array, T: float, B:np.array) -> np.array:
 
 
 def calc_vibrational_entropy(freq, T, B, cut_off=100, alpha=4) -> float:
+    """
+    Vibrational entropy 
+
+    freq | list : frequencies [cm-1]
+    T | float : temperature [K]
+    B | np.array : 
+    cut_off | float : cut off for the damping of the frequency
+    alpha | float : damping factor
+
+    return | float : vibrational entropy [Eh]
+    """
 
     s_damp = calc_damp(freq, cut_off, alpha)
     return np.sum(calc_S_V_grimme(freq, T) * s_damp + (1-s_damp) * calc_S_R_grimme(freq, T, B))*J_TO_H
@@ -206,7 +217,7 @@ def free_gibbs_energy(
     alpha | int : frequency damping factor
     P | float : pressure [kPa]
     """
-    freq = freq[freq> 0]
+    freq = freq[freq>0]
 
     zpve = calc_zpe(freq)
 

@@ -1,15 +1,15 @@
 
 try:
-    from ensemble_analyser.conformer import Conformer
-    from ensemble_analyser.ioFile import read_ensemble, save_snapshot
-    from ensemble_analyser.logger import create_log, ordinal
-    from ensemble_analyser.parser_arguments import parser_arguments
-    from ensemble_analyser.parser_parameter import get_conf_parameters
-    from ensemble_analyser.IOsystem import SerialiseEncoder
-    from ensemble_analyser.protocol import Protocol, load_protocol
-    from ensemble_analyser.pruning import calculate_rel_energies, check_ensemble
-    from ensemble_analyser.grapher import Graph
-    from ensemble_analyser.clustering import perform_PCA
+    from src.conformer import Conformer
+    from src.ioFile import read_ensemble, save_snapshot
+    from src.logger import create_log, ordinal
+    from src.parser_arguments import parser_arguments
+    from src.parser_parameter import get_conf_parameters
+    from src.IOsystem import SerialiseEncoder
+    from src.protocol import Protocol, load_protocol
+    from src.pruning import calculate_rel_energies, check_ensemble
+    from src.grapher import Graph
+    from src.clustering import perform_PCA
 except ImportError:
     from conformer import Conformer
     from ioFile import read_ensemble, save_snapshot
@@ -24,7 +24,7 @@ except ImportError:
 
 import ase
 import time, json
-import datetime
+import datetime, logging
 from tabulate import tabulate
 import os
 
@@ -295,6 +295,7 @@ def main():
 
     # initiate the log
     log = create_log(output)
+    logging.getLogger('matplotlib').disabled = False
 
     if args.restart:
         # reload the previous information from checkpoint file
