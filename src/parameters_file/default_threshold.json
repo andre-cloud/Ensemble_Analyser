@@ -1,0 +1,22 @@
+{
+    "opt" : {
+        "thrG" : 0.5, 
+        "thrB" : 5e-5,
+        "thrGMAX" : 4
+    },
+    "opt+freq" : {
+        "thrG" : 0.5, 
+        "thrB" : 5e-5,
+        "thrGMAX" : 3.5
+    },
+    "freq" : {
+        "thrG" : 0.5, 
+        "thrB" : 5e-5,
+        "thrGMAX" : 3.75
+    },
+    "sp" : {
+        "thrG" : 0.25, 
+        "thrB" : 1e-5,
+        "thrGMAX" : 6
+    }
+}

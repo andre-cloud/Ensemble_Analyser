@@ -1,0 +1,54 @@
+{
+    "0": {
+        "functional": "b97-3c",
+        "basis": "def2-svp",
+        "opt": false,
+        "freq": false, 
+        "solvent" : {
+            "solvent": "acetonitrile",
+            "smd":false
+        }
+    },
+    "1": {
+        "functional": "b3lyp d4",
+        "basis": "def2-svp",
+        "opt": false,
+        "freq": false, 
+        "solvent" : {
+            "solvent": "acetonitrile",
+            "smd":false
+        }
+    },
+    "2": {
+    	"functional": "r2scan-3c",
+        "basis": "def2-mtzvpp",
+        "opt": true,
+        "freq": false, 
+        "solvent" : {
+            "solvent": "acetonitrile",
+            "smd":false
+        }
+    },
+    "3": {
+    	"functional": "r2scan-3c",
+        "basis": "def2-mtzvpp",
+        "opt": false,
+        "freq": true, 
+        "solvent" : {
+            "solvent": "acetonitrile",
+            "smd":false
+        }
+    },
+    "4":{
+        "functional": "cam-b3lyp",
+        "basis": "def2-tzvpp",
+        "opt": false,
+        "freq": false,
+        "graph": true, 
+        "add_input": "%tddft nroots 30 tda false end", 
+        "solvent" : {
+            "solvent": "acetonitrile",
+            "smd":false
+        }
+    }
+}
