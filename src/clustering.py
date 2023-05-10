@@ -79,16 +79,17 @@ def save_PCA_snapshot(fname : str, title : str, pca_scores : np.ndarray, cluster
 
 def perform_PCA(confs : list, ncluster : int, fname : str, title : str, log) -> None: 
     log.info('Starting PCA analysis')
-    nc = ncluster if len(confs) > ncluster else len(ncluster)-1
-    pca_scores, clusters = calc_pca(confs, ncluster=ncluster)
+    nc = ncluster if len(confs) > ncluster else len(confs)-1
+    pca_scores, clusters = calc_pca(confs, ncluster=nc)
     save_PCA_snapshot(fname, title, pca_scores, clusters)
 
     return None
 
 if __name__ == '__main__': 
-    
+
     from ioFile import read_ensemble
+    import mock
 
     # Load the XYZ file
-    xyz_file = read_ensemble('files/ensemble.xyz', 0, 1, None)
-    perform_PCA(xyz_file, 5, 'files/test.png', 'Test', None)
+    xyz_file = read_ensemble('files/ensemble.xyz', 0, 1, mock.MagicMock())
+    perform_PCA(xyz_file, 5, 'files/test.png', 'Test', mock.MagicMock())
