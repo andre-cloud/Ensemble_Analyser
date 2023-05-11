@@ -176,7 +176,8 @@ class Protocol:
             orcablocks=f"%pal nprocs {cpu} end "
             + smd
             + self.add_input
-            + (" %maxcore 4000" if "maxcore" not in self.add_input else ""),
+            + (" %maxcore 4000" if "maxcore" not in self.add_input else "")
+            + " %geom maxiter 1000 end",
             charge=charge,
             mult=mult,
             task="energy",

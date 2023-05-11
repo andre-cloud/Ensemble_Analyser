@@ -41,7 +41,7 @@ class Conformer:
     def get_ase_atoms(self, calc=None):
         return Atoms(
             symbols="".join(list(self.atoms)),
-            positions=self.last_geometry.copy(),
+            positions=self.last_geometry,
             calculator=calc,
         )
 
