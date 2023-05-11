@@ -238,6 +238,7 @@ class Graph:
         X = self.x.copy()
         Y_exp_interp = np.interp(X, ref.x, ref.y, left=0, right=0)
         Graph.damp_graph(fname_ref_damp, X, Y_exp_interp)
+
         def optimiser(variables):
             """
             Callback for the scipy.optimize.minimize
@@ -251,17 +252,25 @@ class Graph:
             )
 
             # RMSD calculation
-            rmsd = np.sqrt(np.mean((Y_comp[np.where((X>=x_min) & (X<=x_max))] - Y_exp_interp[np.where((X>=x_min) & (X<=x_max))]) ** 2))
+            rmsd = np.sqrt(
+                np.mean(
+                    (
+                        Y_comp[np.where((X >= x_min) & (X <= x_max))]
+                        - Y_exp_interp[np.where((X >= x_min) & (X <= x_max))]
+                    )
+                    ** 2
+                )
+            )
             return rmsd
 
         confidence = 0.01
         initial_guess = [0.2, -0.000001]
         self.log.debug(initial_guess)
-        default_guess = [0.1415, 0] # the σ correspond to a FWHM of 0.33 eV
+        default_guess = [0.1415, 0]  # the σ correspond to a FWHM of 0.33 eV
         result = opt.minimize(
             optimiser,
             initial_guess,
-            bounds=[(0.08, 0.21), (-1, 1)], # FWHM is between 0.2 and 0.5 eV
+            bounds=[(0.08, 0.21), (-1, 1)],  # FWHM is between 0.2 and 0.5 eV
             options={"maxiter": 10000},
             method="Powell",
         )
@@ -429,9 +438,16 @@ if __name__ == "__main__":
         Y_comp = Graph.normalise(computed.calc_graph(shift, sigma))
 
         # RMSD calculation
-        rmsd = np.sqrt(np.mean((Y_comp[np.where((X>=x_min) & (X<=x_max))] - Y_exp_interp[np.where((X>=x_min) & (X<=x_max))]) ** 2))
+        rmsd = np.sqrt(
+            np.mean(
+                (
+                    Y_comp[np.where((X >= x_min) & (X <= x_max))]
+                    - Y_exp_interp[np.where((X >= x_min) & (X <= x_max))]
+                )
+                ** 2
+            )
+        )
         return rmsd
-
 
     confidence = 0.01
     initial_guess = [0.2, -0.000001, confidence]

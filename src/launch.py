@@ -392,6 +392,7 @@ def main():
             cls=SerialiseEncoder,
         )
         conformers = read_ensemble(args.ensemble, args.charge, args.multiplicity, log)
+        perform_PCA(conformers, 5, 'Initial PCA', 'PCA analysis of Conf Search', log)
 
     # start the loop
     start_calculation(

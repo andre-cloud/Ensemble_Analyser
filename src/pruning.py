@@ -55,7 +55,7 @@ def rmsd(check, ref) -> float:
     )
 
 
-def dict_compare(check, conf_ref, deactivate=True) -> dict:
+def dict_compare(check, conf_ref, deactivate=True) -> dict:  # pragma: no cover
     """
     Create a default dictionary for the comparison
 
