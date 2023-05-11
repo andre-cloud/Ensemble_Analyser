@@ -6,13 +6,13 @@ import matplotlib.pyplot as plt
 from typing import Union
 import logging
 
-logging.getLogger('matplotlib').disabled = True
+logging.getLogger("matplotlib").disabled = True
 
 
 def get_best_ncluster(coords):
     """
-    Obtain the best number of cluster based on the maximization of the silhouette 
-    
+    Obtain the best number of cluster based on the maximization of the silhouette
+
     coords | 2D-array : array of the coordinates of each atom
     return | int : best number of clusters
     """
@@ -26,7 +26,8 @@ def get_best_ncluster(coords):
         silhouette_scores.append(score)
     return k_range[np.argmax(silhouette_scores)]
 
-def calc_pca(confs: list, ncluster : Union[int,None] = None) -> tuple:
+
+def calc_pca(confs: list, ncluster: Union[int, None] = None) -> tuple:
     """
     Function that execute the actual PCA analysis. It wants to understand how conformations differ from each other based on their overall Cartesian coordinates
 
@@ -41,7 +42,7 @@ def calc_pca(confs: list, ncluster : Union[int,None] = None) -> tuple:
     # normalize it to have mean=0 and variance=1
     coords_2d = (coords_2d - np.mean(coords_2d, axis=0)) / np.std(coords_2d, axis=0)
 
-    # perform PCA analysis with number of components as minimum between number of 
+    # perform PCA analysis with number of components as minimum between number of
     # n. confs and whole geom
     pca = PCA(n_components=min(coords_2d.shape[0], coords_2d.shape[1]))
     pca.fit(coords_2d)
@@ -58,21 +59,24 @@ def calc_pca(confs: list, ncluster : Union[int,None] = None) -> tuple:
     clusters = kmeans.fit_predict(pca_scores)
     return pca_scores, clusters
 
-def save_PCA_snapshot(fname : str, title : str, pca_scores : np.ndarray, clusters : np.ndarray) -> None: 
+
+def save_PCA_snapshot(
+    fname: str, title: str, pca_scores: np.ndarray, clusters: np.ndarray
+) -> None:
     """
     Graph and save the image of the PCA analysis
-    
+
     fname | str : filename to save the graphs
     title | str : title of the graph
     pca_scores | np.array : PCA transformation
     clusters | np.array : Clustered coordinates
     return None
     """
-    
+
     fig, ax = plt.subplots()
-    ax.scatter(pca_scores[:,0], pca_scores[:,1], c=clusters, marker='o')
-    ax.set_xlabel('Principal Component 1')
-    ax.set_ylabel('Principal Component 2')
+    ax.scatter(pca_scores[:, 0], pca_scores[:, 1], c=clusters, marker="o")
+    ax.set_xlabel("Principal Component 1")
+    ax.set_ylabel("Principal Component 2")
     ax.set_title(title)
 
     plt.tight_layout()
@@ -80,19 +84,19 @@ def save_PCA_snapshot(fname : str, title : str, pca_scores : np.ndarray, cluster
     return None
 
 
-def perform_PCA(confs : list, ncluster : int, fname : str, title : str, log) -> None: 
-    log.info('Starting PCA analysis')
-    nc = ncluster if len(confs) > ncluster else len(confs)-1
+def perform_PCA(confs: list, ncluster: int, fname: str, title: str, log) -> None:
+    log.info("Starting PCA analysis")
+    nc = ncluster if len(confs) > ncluster else len(confs) - 1
     pca_scores, clusters = calc_pca(confs, ncluster=nc)
     save_PCA_snapshot(fname, title, pca_scores, clusters)
 
     return None
 
-if __name__ == '__main__': 
 
+if __name__ == "__main__":
     from ioFile import read_ensemble
     import mock
 
     # Load the XYZ file
-    xyz_file = read_ensemble('files/ensemble.xyz', 0, 1, mock.MagicMock())
-    perform_PCA(xyz_file, 5, 'files/test.png', 'Test', mock.MagicMock())
+    xyz_file = read_ensemble("files/ensemble.xyz", 0, 1, mock.MagicMock())
+    perform_PCA(xyz_file, 5, "files/test.png", "Test", mock.MagicMock())
