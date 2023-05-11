@@ -1,6 +1,7 @@
 import re
 import os
 import numpy as np
+import cclib
 
 try:
     from src.regex_parsing import regex_parsing
@@ -65,6 +66,9 @@ def get_conf_parameters(conf, number: int, p, time, temp: float, log) -> bool:
     return | bool : calculation ended correctly and not crashed due to server error
     """
 
+    data = cclib.io.ccread(f'ORCA.out')
+    conf.last_geometry = data.atomcoords[-1]
+    
     with open(os.path.join(conf.folder, f"protocol_{number}.out")) as f:
         fl = f.readlines()
 
