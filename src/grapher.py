@@ -258,7 +258,7 @@ class Graph:
             # diff = np.sum(y[np.where((y>0) & (y>threshold))])
 
             # RMSD calculation
-            rmsd = np.sqrt(np.mean((Y_comp - Y_exp_interp) ** 2))
+            rmsd = np.sqrt(np.mean((Y_comp[np.where((X>=x_min) & (X<=x_max))] - Y_exp_interp[np.where((X>=x_min) & (X<=x_max))]) ** 2))
 
             # exp = np.array([[x,y] for x, y in zip(X, Y_exp_interp)])
             # comp = np.array([[x,y] for x, y in zip(X, Y_comp)])
@@ -284,7 +284,7 @@ class Graph:
         if result.success:
             sigma, shift, thr = result.x
             self.log.info(
-                f"Convergence of parameters succeeded within a threshold of {thr:.2f}u.a. for the ∆ε. Confidence level: {(1-result.fun/(2*X[np.where((X>=x_min) & (X<=x_max))].size))*100:.2f}%. Parameters obtained\n\t- σ = {sigma:.4f} eV (that correspond to a FWHM = {(sigma*np.sqrt(2*np.log(2))*2):.4f} eV)\n\t- Δ = {shift:.4f} eV (in this case, a negative shift corresponds to a RED-shift)"
+                f"Convergence of parameters succeeded in {counter} steps. Confidence level: {(1-result.fun/2)*100:.2f}%. Parameters obtained\n\t- σ = {sigma:.4f} eV (that correspond to a FWHM = {(sigma*np.sqrt(2*np.log(2))*2):.4f} eV)\n\t- Δ = {shift:.4f} eV (in this case, a negative shift corresponds to a RED-shift)"
             )
             Y_COMP = Graph.normalise(
                 self.calc_graph(
