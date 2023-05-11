@@ -238,11 +238,13 @@ class Graph:
         X = self.x.copy()
         Y_exp_interp = np.interp(X, ref.x, ref.y, left=0, right=0)
         Graph.damp_graph(fname_ref_damp, X, Y_exp_interp)
-
+        counter = 0
         def optimiser(variables):
             """
             Callback for the scipy.optimize.minimize
             """
+
+            global counter
             sigma, shift, threshold = variables
             Y_comp = Graph.normalise(
                 self.calc_graph(
@@ -268,6 +270,7 @@ class Graph:
             # diff = (diff_area_pos*trapezoid(exp[exp[:, 1]>0][:, 0], exp[exp[:, 1]>0][:, 1])) + diff_area_neg*trapezoid(exp[exp[:, 1]<0][:, 0], exp[exp[:, 1]<0][:, 1])/ (trapezoid(exp[exp[:, 1]>0][:, 0], exp[exp[:, 1]>0][:, 1]) + trapezoid(exp[exp[:, 1]<0][:, 0], exp[exp[:, 1]<0][:, 1]) )
 
             # print(sigma, shift, threshold, diff)
+            counter += 1
             return rmsd
 
         confidence = 0.01
@@ -454,7 +457,7 @@ if __name__ == "__main__":
         # diff = np.sum(y[np.where((y>0) & (y>threshold))])
 
         # RMSD calculation
-        rmsd = np.sqrt(np.mean((Y_comp - Y_exp_interp) ** 2))
+        rmsd = np.sqrt(np.mean((Y_comp[np.where((X>=x_min) & (X<=x_max))] - Y_exp_interp[np.where((X>=x_min) & (X<=x_max))]) ** 2))
 
         # exp = np.array([[x,y] for x, y in zip(X, Y_exp_interp)])
         # comp = np.array([[x,y] for x, y in zip(X, Y_comp)])
