@@ -4,6 +4,8 @@ import scipy.optimize as opt
 from scipy.constants import c, h, electron_volt, R
 import matplotlib.pyplot as plt
 
+plt.set_loglevel("error")
+
 try:
     from src.regex_parsing import regex_parsing
 except ImportError as e:

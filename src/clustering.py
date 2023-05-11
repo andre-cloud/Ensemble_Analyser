@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from typing import Union
 import logging
 
-logging.getLogger("matplotlib").disabled = True
+plt.set_loglevel("error")
 
 
 def get_best_ncluster(coords):

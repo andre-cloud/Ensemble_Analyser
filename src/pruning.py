@@ -57,9 +57,9 @@ def rmsd(check, ref) -> float:
 
 def dict_compare(check, conf_ref, deactivate=True) -> dict:
     """
-    Create a default dictionary for the comparison 
+    Create a default dictionary for the comparison
 
-    return | dict 
+    return | dict
     """
     return {
         "Check": check.number,
