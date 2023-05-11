@@ -238,56 +238,37 @@ class Graph:
         X = self.x.copy()
         Y_exp_interp = np.interp(X, ref.x, ref.y, left=0, right=0)
         Graph.damp_graph(fname_ref_damp, X, Y_exp_interp)
-        counter = 0
         def optimiser(variables):
             """
             Callback for the scipy.optimize.minimize
             """
-
-            global counter
-            sigma, shift, threshold = variables
+            sigma, shift = variables
             Y_comp = Graph.normalise(
                 self.calc_graph(
                     impulses=impulses, shift=shift, sigma=sigma, save=False
                 ),
                 norm=norm,
             )
-            # graphs[len(graphs)] = Y_comp
-
-            # different with threshold
-            # y = np.abs(Y_comp - Y_exp_interp)
-            # y = y[np.argwhere((X>=x_min) & (X<=x_max))]
-            # diff = np.sum(y[np.where((y>0) & (y>threshold))])
 
             # RMSD calculation
             rmsd = np.sqrt(np.mean((Y_comp[np.where((X>=x_min) & (X<=x_max))] - Y_exp_interp[np.where((X>=x_min) & (X<=x_max))]) ** 2))
-
-            # exp = np.array([[x,y] for x, y in zip(X, Y_exp_interp)])
-            # comp = np.array([[x,y] for x, y in zip(X, Y_comp)])
-
-            # diff_area_pos = trapezoid(exp[exp[:, 1]>0][:, 0], exp[exp[:, 1]>0][:, 1]) - trapezoid(comp[comp[:, 1]>0][:, 0], comp[comp[:, 1]>0][:, 1])
-            # diff_area_neg = trapezoid(exp[exp[:, 1]<0][:, 0], exp[exp[:, 1]<0][:, 1]) - trapezoid(comp[comp[:, 1]<0][:, 0], comp[comp[:, 1]<0][:, 1])
-            # diff = (diff_area_pos*trapezoid(exp[exp[:, 1]>0][:, 0], exp[exp[:, 1]>0][:, 1])) + diff_area_neg*trapezoid(exp[exp[:, 1]<0][:, 0], exp[exp[:, 1]<0][:, 1])/ (trapezoid(exp[exp[:, 1]>0][:, 0], exp[exp[:, 1]>0][:, 1]) + trapezoid(exp[exp[:, 1]<0][:, 0], exp[exp[:, 1]<0][:, 1]) )
-
-            # print(sigma, shift, threshold, diff)
-            counter += 1
             return rmsd
 
         confidence = 0.01
-        initial_guess = [0.2, -0.000001, confidence]
+        initial_guess = [0.2, -0.000001]
         self.log.debug(initial_guess)
-        default_guess = [0.214, 0]
+        default_guess = [0.1415, 0] # the σ correspond to a FWHM of 0.33 eV
         result = opt.minimize(
             optimiser,
             initial_guess,
-            bounds=[(0.16, 1 / 5), (-1, 1), (0.01, 0.01)],
+            bounds=[(0.08, 0.21), (-1, 1)], # FWHM is between 0.2 and 0.5 eV
             options={"maxiter": 10000},
             method="Powell",
         )
         if result.success:
-            sigma, shift, thr = result.x
+            sigma, shift = result.x
             self.log.info(
-                f"Convergence of parameters succeeded in {counter} steps. Confidence level: {(1-result.fun/2)*100:.2f}%. Parameters obtained\n\t- σ = {sigma:.4f} eV (that correspond to a FWHM = {(sigma*np.sqrt(2*np.log(2))*2):.4f} eV)\n\t- Δ = {shift:.4f} eV (in this case, a negative shift corresponds to a RED-shift)"
+                f"Convergence of parameters succeeded in {result.nfev} steps. Confidence level: {(1-result.fun/2)*100:.2f}%. Parameters obtained\n\t- σ = {sigma:.4f} eV (that correspond to a FWHM = {(sigma*np.sqrt(2*np.log(2))*2):.4f} eV)\n\t- Δ = {shift:.4f} eV (in this case, a negative shift corresponds to a RED-shift)"
             )
             Y_COMP = Graph.normalise(
                 self.calc_graph(
@@ -442,61 +423,28 @@ if __name__ == "__main__":
     computed = Test_Graph("../files/impulse.dat")
 
     graphs = {}
-    counter = 0
 
     def optimiser(variables):
-        global counter
         sigma, shift, threshold = variables
         Y_comp = Graph.normalise(computed.calc_graph(shift, sigma))
-        graphs[len(graphs)] = Y_comp
-        # graphs[len(graphs)] = Y_comp
-
-        # different with threshold
-        # y = np.abs(Y_comp - Y_exp_interp)
-        # y = y[np.argwhere((X>=x_min) & (X<=x_max))]
-        # diff = np.sum(y[np.where((y>0) & (y>threshold))])
 
         # RMSD calculation
         rmsd = np.sqrt(np.mean((Y_comp[np.where((X>=x_min) & (X<=x_max))] - Y_exp_interp[np.where((X>=x_min) & (X<=x_max))]) ** 2))
-
-        # exp = np.array([[x,y] for x, y in zip(X, Y_exp_interp)])
-        # comp = np.array([[x,y] for x, y in zip(X, Y_comp)])
-
-        # diff_area_pos = trapezoid(exp[exp[:, 1]>0][:, 0], exp[exp[:, 1]>0][:, 1]) - trapezoid(comp[comp[:, 1]>0][:, 0], comp[comp[:, 1]>0][:, 1])
-        # diff_area_neg = trapezoid(exp[exp[:, 1]<0][:, 0], exp[exp[:, 1]<0][:, 1]) - trapezoid(comp[comp[:, 1]<0][:, 0], comp[comp[:, 1]<0][:, 1])
-        # diff = (diff_area_pos*trapezoid(exp[exp[:, 1]>0][:, 0], exp[exp[:, 1]>0][:, 1])) + diff_area_neg*trapezoid(exp[exp[:, 1]<0][:, 0], exp[exp[:, 1]<0][:, 1])/ (trapezoid(exp[exp[:, 1]>0][:, 0], exp[exp[:, 1]>0][:, 1]) + trapezoid(exp[exp[:, 1]<0][:, 0], exp[exp[:, 1]<0][:, 1]) )
-
-        # print(sigma, shift, threshold, diff)
-        counter += 1
         return rmsd
-        sigma, shift, threshold = variables
-        Y_comp = Graph.normalise(computed.calc_graph(shift, sigma))
 
-        # different with threshold
-        y = np.abs(Y_comp - Y_exp_interp)
-        diff = np.sum(y[np.where((y > 0) & (y > threshold))])
-
-        exp = np.array([[x, y] for x, y in zip(X, Y_exp_interp)])
-        comp = np.array([[x, y] for x, y in zip(X, Y_comp)])
-
-        # diff_area_pos = trapezoid(exp[exp[:, 1]>0][:, 0], exp[exp[:, 1]>0][:, 1]) - trapezoid(comp[comp[:, 1]>0][:, 0], comp[comp[:, 1]>0][:, 1])
-        # diff_area_neg = trapezoid(exp[exp[:, 1]<0][:, 0], exp[exp[:, 1]<0][:, 1]) - trapezoid(comp[comp[:, 1]<0][:, 0], comp[comp[:, 1]<0][:, 1])
-        # diff = (diff_area_pos*trapezoid(exp[exp[:, 1]>0][:, 0], exp[exp[:, 1]>0][:, 1])) + diff_area_neg*trapezoid(exp[exp[:, 1]<0][:, 0], exp[exp[:, 1]<0][:, 1])/ (trapezoid(exp[exp[:, 1]>0][:, 0], exp[exp[:, 1]>0][:, 1]) + trapezoid(exp[exp[:, 1]<0][:, 0], exp[exp[:, 1]<0][:, 1]) )
-
-        print(sigma, shift, threshold, diff)
-        return diff
 
     confidence = 0.01
     initial_guess = [0.2, -0.000001, confidence]
     result = opt.minimize(
         optimiser,
         initial_guess,
-        bounds=[(0.16, 1 / 5), (-1, 1), (0.01, 0.01)],
+        bounds=[(0.08, 0.21), (-1, 1), (0.01, 0.01)],
         options={"maxiter": 10000},
         method="Powell",
     )
     if result.success:
-        print((result.x), result.fun, (1 - result.fun / (2 * X.size)) * 100, counter)
+        print(result)
+        print((result.x), result.fun, (1 - result.fun / 2) * 100, result.nfev)
     else:
         print("NO")
 
