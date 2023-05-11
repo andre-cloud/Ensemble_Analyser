@@ -4,6 +4,9 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 import matplotlib.pyplot as plt
 from typing import Union
+import logging
+
+logging.getLogger('matplotlib').disabled = True
 
 
 def get_best_ncluster(coords):
