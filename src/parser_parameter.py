@@ -52,6 +52,16 @@ def get_freq(fl: str, calc: str) -> np.ndarray:
     return freq
 
 
+def get_opt_geometry(fl, calc, log):
+
+
+    opt_done = regex_parsing[calc]['opt_done'] in fl
+    if not opt_done: 
+        log.error(f'The optimization did not find a stationary point')
+
+    return None
+
+
 def get_conf_parameters(conf, number: int, p, time, temp: float, log) -> bool:
     """
     Obtain the parameters for a conformer: E, G, B, m
@@ -69,9 +79,12 @@ def get_conf_parameters(conf, number: int, p, time, temp: float, log) -> bool:
     if p.opt:
         data = cclib.io.ccread(f'{conf.folder}/protocol_{p.number}.out')
         conf.last_geometry = data.atomcoords[-1]
+
     
     with open(os.path.join(conf.folder, f"protocol_{number}.out")) as f:
         fl = f.readlines()
+
+    geom = get_opt_geometry(fl, p.calculator)
 
     try:
         e = float(
@@ -86,7 +99,7 @@ def get_conf_parameters(conf, number: int, p, time, temp: float, log) -> bool:
     freq = np.array([])
     if p.freq:
         freq = get_freq(fl, p.calculator) * p.freq_fact
-        log.info(f"{conf.number} has {freq[freq<0].size} imaginary frequency(s)")
+        log.info(f"{conf.number} has {freq[freq<0].size} imaginary frequency(s): {', '.join(list(freq[freq<0]))}")
         if freq.size == 0:
             log.error(("\n".join(fl[-6:])).strip())
             log.critical(
@@ -146,6 +159,7 @@ if __name__ == "__main__":
     # get_conf_parameters(c, 0, 1, 298.15, log)
     # print(c.energies)
 
-    with open("files/opt.out") as f:
-        fl = f.readlines()
-    get_freq(fl)
+    from mock import Mock
+    with open("conf_1/protocol_2.out") as f:
+        fl = f.read()
+    get_opt_geometry(fl, 'orca', Mock())

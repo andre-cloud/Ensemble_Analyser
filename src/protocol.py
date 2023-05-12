@@ -177,7 +177,7 @@ class Protocol:
             + smd
             + self.add_input
             + (" %maxcore 4000" if "maxcore" not in self.add_input else "")
-            + " %geom maxiter 1000 end",
+            + " %geom maxiter 1000 end" if self.opt else "",
             charge=charge,
             mult=mult,
             task="energy",
