@@ -393,7 +393,9 @@ def main():
         )
         conformers = read_ensemble(args.ensemble, args.charge, args.multiplicity, log)
         if len(conformers) > 3:
-            perform_PCA(conformers, 5, 'initial_pca', 'PCA analysis of Conf Search', log)
+            perform_PCA(
+                conformers, 5, "initial_pca", "PCA analysis of Conf Search", log
+            )
 
     # start the loop
     start_calculation(

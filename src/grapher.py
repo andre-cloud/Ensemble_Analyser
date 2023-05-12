@@ -112,7 +112,7 @@ class Graph:
         """
         graph = spectra.split(regex_parsing[self.protocol.calculator]["s_UV"])[
             -1
-        ].split(regex_parsing[self.protocol.calculator]["break_spectra"])[0]
+        ].split(regex_parsing[self.protocol.calculator]["break"])[0]
 
         return [
             (
@@ -142,7 +142,7 @@ class Graph:
         """
         graph = spectra.split(regex_parsing[self.protocol.calculator]["s_ECD"])[
             -1
-        ].split(regex_parsing[self.protocol.calculator]["break_spectra"])[0]
+        ].split(regex_parsing[self.protocol.calculator]["break"])[0]
 
         return [
             (

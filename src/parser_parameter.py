@@ -1,7 +1,6 @@
 import re
 import os
 import numpy as np
-import cclib
 
 try:
     from src.regex_parsing import regex_parsing
@@ -52,14 +51,27 @@ def get_freq(fl: str, calc: str) -> np.ndarray:
     return freq
 
 
-def get_opt_geometry(fl, calc, log):
+def get_opt_geometry(fl: str, calc: str, log) -> np.ndarray:
+    """
+    Fetch the geometry from the calculator output
+    """
 
+    opt_done = regex_parsing[calc]["opt_done"] in fl
+    if not opt_done:
+        log.error(f"The optimization did not find a stationary point")
 
-    opt_done = regex_parsing[calc]['opt_done'] in fl
-    if not opt_done: 
-        log.error(f'The optimization did not find a stationary point')
+    fl = fl.split(regex_parsing[calc]["opt_done"])[-1]
+    fl = (
+        fl.split(regex_parsing[calc]["geom_start"])[-1]
+        .split(regex_parsing[calc]["break"])[0]
+        .strip()
+        .splitlines()
+    )
 
-    return None
+    if calc == "orca":
+        geom = np.array([i.split()[1:] for i in fl if i], dtype=float)
+
+    return geom
 
 
 def get_conf_parameters(conf, number: int, p, time, temp: float, log) -> bool:
@@ -76,15 +88,16 @@ def get_conf_parameters(conf, number: int, p, time, temp: float, log) -> bool:
     return | bool : calculation ended correctly and not crashed due to server error
     """
 
-    if p.opt:
-        data = cclib.io.ccread(f'{conf.folder}/protocol_{p.number}.out')
-        conf.last_geometry = data.atomcoords[-1]
+    # if p.opt:
+    #     data = cclib.io.ccread(f'{conf.folder}/protocol_{p.number}.out')
+    #     conf.last_geometry = data.atomcoords[-1]
 
-    
     with open(os.path.join(conf.folder, f"protocol_{number}.out")) as f:
         fl = f.readlines()
 
-    geom = get_opt_geometry(fl, p.calculator)
+    if p.opt:
+        # Fetch and set the optimized geometry
+        conf.last_geometry = get_opt_geometry(fl, p.calculator)
 
     try:
         e = float(
@@ -99,7 +112,9 @@ def get_conf_parameters(conf, number: int, p, time, temp: float, log) -> bool:
     freq = np.array([])
     if p.freq:
         freq = get_freq(fl, p.calculator) * p.freq_fact
-        log.info(f"{conf.number} has {freq[freq<0].size} imaginary frequency(s): {', '.join(list(freq[freq<0]))}")
+        log.info(
+            f"{conf.number} has {freq[freq<0].size} imaginary frequency(s): {', '.join(list(freq[freq<0]))}"
+        )
         if freq.size == 0:
             log.error(("\n".join(fl[-6:])).strip())
             log.critical(
@@ -160,6 +175,7 @@ if __name__ == "__main__":
     # print(c.energies)
 
     from mock import Mock
+
     with open("conf_1/protocol_2.out") as f:
         fl = f.read()
-    get_opt_geometry(fl, 'orca', Mock())
+    get_opt_geometry(fl, "orca", Mock())
