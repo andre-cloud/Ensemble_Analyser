@@ -19,3 +19,4 @@ def test_launch():
         )
     log.critical.assert_called_once()
     log.error.assert_called_once()
+

@@ -95,7 +95,7 @@ def perform_PCA(confs: list, ncluster: int, fname: str, title: str, log) -> None
     return None
 
 
-if __name__ == "__main__":
+if __name__== "__main__": # pragma: no cover:
     from ioFile import read_ensemble
     import mock
 

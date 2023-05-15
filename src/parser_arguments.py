@@ -153,7 +153,7 @@ def parser_arguments():
         action="store_true",
     )
 
-    if __name__ == "__main__":
+    if __name__== "__main__": # pragma: no cover:
         parser.print_help()
 
     a = sys.argv
@@ -166,5 +166,5 @@ def parser_arguments():
     return parser.parse_args()
 
 
-if __name__ == "__main__":
+if __name__== "__main__": # pragma: no cover:
     parser_arguments()

@@ -1,7 +1,7 @@
 try:
     from src.IOsystem import _parse_xyz_str
     from src.conformer import Conformer
-except ImportError as e:
+except ImportError as e: # pragma: no cover
     print(e)
     from IOsystem import _parse_xyz_str
     from conformer import Conformer

@@ -1,9 +1,9 @@
-import pytest, ase
+import pytest, ase, json
 import numpy as np
 from mock import Mock, patch
 
 
-from src.pruning import cut_over_thr_max, rmsd, check_ensemble, calculate_rel_energies, check
+from src.pruning import cut_over_thr_max, rmsd, check_ensemble, calculate_rel_energies, check, refactor_dict
 
 
 class MockConformer:
@@ -20,9 +20,6 @@ class MockConformer:
     
     def write_xyz(self):
         return 'a'
-
-    def __repr__(self):
-        return ', '.join([f"{k} = {v}" for k,v in self._last_energy.items()])
 
 
 def test_cut_over_thr_max():
@@ -62,6 +59,29 @@ def test_check_ensemble():
     mock_rmsd.assert_any_call(conf1.get_ase_atoms(), conf3.get_ase_atoms())
     mock_rmsd.assert_any_call(conf2.get_ase_atoms(), conf3.get_ase_atoms())
 
+    confs = [conf1, conf2, conf3]
+    protocol.graph = True
+    protocol.number = 1
+
+    with patch('src.pruning.cut_over_thr_max') as mock_cut_over_thr_max,  \
+            patch('src.pruning.rmsd') as mock_rmsd:
+        result = check_ensemble(confs, protocol, log)
+    assert result == confs
+
+    conf2.active = False
+    with patch('src.pruning.cut_over_thr_max') as mock_cut_over_thr_max,  \
+            patch('src.pruning.rmsd') as mock_rmsd:
+        result = check_ensemble(confs, protocol, log)
+    
+    confs_tmp = confs[:]
+    confs.pop(1)
+    assert result == confs
+
+    confs = confs_tmp[:]
+    
+
+
+
 
 def test_calculate_rel_energies():
     c = [
@@ -73,7 +93,6 @@ def test_calculate_rel_energies():
 
     calculate_rel_energies(c, T)
 
-    print(c)
     assert np.isclose(c[0]._last_energy["Erel"], 0.0)
     assert np.isclose(c[0]._last_energy["Pop"], 99.97846114451659)
     
@@ -112,6 +131,13 @@ def test_check():
     assert check_conformer.active == True
     assert controller == {}
 
+
+    ref_conformer.active = False
+
+    assert check(check_conformer, ref_conformer, protocol, controller) == False
+    assert check_conformer.active == True
+    assert controller == {}
+
     check_conformer = MockConformer(3, 3)
     check_conformer.rotatory = 5
     check_conformer.moment = 2
@@ -131,3 +157,15 @@ def test_check():
     assert controller[0]["∆E [kcal/mol]"] == -2
     assert controller[0]["∆B [e-3 cm-1]"] == 2000
     assert controller[0]["Deactivate"] == True
+
+
+
+
+
+def test_refactor_ditc():
+    input_dict = {0: {"a": 1, "b": 2}, 2 : {"a": 3, "b": 4}} 
+    expected_dict = json.dumps({"a" : [1, 3], "b" : [2, 4]})
+
+    assert json.dumps(refactor_dict(input_dict)) == expected_dict
+
+    assert refactor_dict({}) == {}

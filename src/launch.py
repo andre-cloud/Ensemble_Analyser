@@ -9,7 +9,7 @@ try:
     from src.pruning import calculate_rel_energies, check_ensemble
     from src.grapher import Graph
     from src.clustering import perform_PCA
-except ImportError as e:
+except ImportError as e: # pragma: no cover
     print(e)
     from conformer import Conformer
     from ioFile import read_ensemble, save_snapshot

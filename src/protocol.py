@@ -7,7 +7,7 @@ from ase.calculators.orca import ORCA
 DEBUG = os.getenv("DEBUG")
 
 
-def load_protocol(file: str):
+def load_protocol(file: str): # pragma: no cover
     default = "ensemble_analyser/parameters_file/default_protocol.json"
     return json.load(open(default if not file else file))
 
@@ -29,10 +29,10 @@ class Solvent:
         self.solvent = solv["solvent"]
         self.smd = solv["smd"]
 
-    def __str__(self):
+    def __str__(self):  # pragma: no cover
         return f"SMD({self.solvent})" if self.smd else f"CPCM({self.solvent})"
 
-    def __repr__(self):
+    def __repr__(self):  # pragma: no cover
         return f"SMD({self.solvent})" if self.smd else f"CPCM({self.solvent})"
 
     def orca_input_smd(self):
@@ -138,12 +138,12 @@ class Protocol:
         if not self.thrGMAX:
             self.thrGMAX = thr_json[c]["thrGMAX"]
 
-    def __str__(self):
+    def __str__(self): # pragma: no cover
         if self.solvent:
             return f"{self.functional}/{self.basis} - {self.solvent}"
         return f"{self.functional}/{self.basis}"
 
-    def __repr__(self):
+    def __repr__(self): # pragma: no cover
         if self.solvent:
             return f"{self.functional}/{self.basis} - {self.solvent}"
         return f"{self.functional}/{self.basis}"
@@ -193,12 +193,11 @@ class Protocol:
             number=json["number"],
             functional=json["functional"],
             basis=json["basis"],
-            solvent=Solvent(json["solvent"]) if json["solvent"] else None,
+            solvent=Solvent(**json["solvent"]) if json["solvent"] else None,
             opt=json["opt"],
             freq=json["freq"],
             add_input=json["add_input"],
             calculator=json["calculator"],
-            thrs_json=None,
             thrB=json["thrB"],
             thrG=json["thrG"],
             thrGMAX=json["thrGMAX"],

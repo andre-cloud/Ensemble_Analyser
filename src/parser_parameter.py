@@ -5,7 +5,7 @@ import numpy as np
 try:
     from src.regex_parsing import regex_parsing
     from src.rrho import free_gibbs_energy
-except ImportError as e:
+except ImportError as e: # pragma: no cover
     print(e)
     from regex_parsing import regex_parsing
     from rrho import free_gibbs_energy
@@ -158,7 +158,7 @@ def get_conf_parameters(conf, number: int, p, time, temp: float, log) -> bool:
     return True
 
 
-if __name__ == "__main__":
+if __name__== "__main__": # pragma: no cover:
     # from logger import create_log
 
     # class Conf:
