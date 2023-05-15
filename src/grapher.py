@@ -3,12 +3,13 @@ import os
 import scipy.optimize as opt
 from scipy.constants import c, h, electron_volt, R
 import matplotlib.pyplot as plt
+from typing import Union
 
 plt.set_loglevel("error")
 
 try:
     from src.regex_parsing import regex_parsing
-except ImportError as e: # pragma: no cover
+except ImportError as e:  # pragma: no cover
     print(e)
     from regex_parsing import regex_parsing
 
@@ -16,7 +17,18 @@ FACTOR_EV_NM = h * c / (10**-9 * electron_volt)
 
 
 class Graph:
-    def __init__(self, confs, protocol, log, T, final_lambda=800.0, definition=4):
+    def __init__(
+        self,
+        confs,
+        protocol,
+        log,
+        T,
+        final_lambda=800.0,
+        definition=4,
+        FWHM: Union[None, float] = None,
+        shift: Union[None, float] = None,
+        invert: bool = False
+    ):
         """
 
         confs | list : whole ensemble list
@@ -25,6 +37,7 @@ class Graph:
         T | float : temperature [K]
         final_lambda | float : last wavelength to convolute the spectra
         definition | int : number of point for the wavelength interval
+
         """
 
         self.confs = [i for i in confs if i.active]
@@ -34,7 +47,7 @@ class Graph:
         self.log.debug(self.pop)
 
         self.x = np.linspace(
-            FACTOR_EV_NM / 100, FACTOR_EV_NM / (final_lambda), 10**definition
+            FACTOR_EV_NM / 150, FACTOR_EV_NM / (final_lambda), 10**definition
         )  # eV x axis
 
         self.spectra = []
@@ -43,18 +56,21 @@ class Graph:
         self.uv_impulses = [self.get_uv(i) for i in self.spectra]
         self.ecd_impulses = [self.get_ecd(i) for i in self.spectra]
 
-        # creating the ECD and UV graph. If uv_ref.dat and/or ecd_ref.dat autoconvolution of the reference is performed
+        # creating the ECD and UV graph. If uv_ref.dat and/or ecd_ref.dat auto-convolution of the reference is performed
         if os.path.exists(os.path.join(os.getcwd(), "ecd_ref.dat")):
             ecd = self.auto_convolution(
                 os.path.join(os.getcwd(), "ecd_ref.dat"),
                 fname_ref_damp=os.path.join(os.getcwd(), "ecd_ref_norm_eV.dat"),
                 impulses=self.ecd_impulses,
                 fname=f"ecd_protocol_{self.protocol.number}_auto_conv.dat",
+                user_sigma=FWHM / (2 * np.sqrt(2 * np.log(2))) if FWHM else None,
+                user_shift=shift,
+                invert=invert
             )
         else:
             ecd = self.calc_graph(
                 impulses=self.ecd_impulses,
-                sigma=1 / 3,
+                sigma=FWHM / (2 * np.sqrt(2 * np.log(2))) if FWHM else 1 / 3,
                 fname=f"ecd_protocol_{self.protocol.number}.dat",
                 save=True,
             )
@@ -65,11 +81,13 @@ class Graph:
                 fname_ref_damp=os.path.join(os.getcwd(), "uv_ref_norm_eV.dat"),
                 impulses=self.ecd_impulses,
                 fname=f"uv_protocol_{self.protocol.number}_auto_conv.dat",
+                user_sigma=FWHM / (2 * np.sqrt(2 * np.log(2))) if FWHM else None,
+                user_shift=shift,
             )
         else:
             uv = self.calc_graph(
                 impulses=self.ecd_impulses,
-                sigma=1 / 3,
+                sigma=FWHM / (2 * np.sqrt(2 * np.log(2))) if FWHM else 1 / 3,
                 fname=f"uv_protocol_{self.protocol.number}.dat",
                 save=True,
             )
@@ -215,7 +233,15 @@ class Graph:
         return pop
 
     def auto_convolution(
-        self, fname_ref, fname_ref_damp, impulses, fname, norm=1
+        self,
+        fname_ref,
+        fname_ref_damp,
+        impulses,
+        fname,
+        norm=1,
+        user_sigma=None,
+        user_shift=None,
+        invert=False
     ) -> np.ndarray:
         """
         Optimization to find the best fitting values for the Gaussian convolution.
@@ -225,11 +251,13 @@ class Graph:
         fname_ref_damp | str : filename to save the autoconvoluted graph
         impulses | np.array((eV, I)) : list of single excitation [eV, I] where I can be a UV or ECD excitation
         fname | str : filename to save the final convoluted graph
-
+        user_sigma | float : user defined sigma for gaussian convolution
+        user_shift | float : user defined shift after gaussian convolution
+        invert | bool : invert the ECD graph when True
         return | np.array : normalized graph
         """
 
-        ref = Ref_graph(fname_ref, None)
+        ref = Ref_graph(fname_ref, None, invert=invert)
         x_min, x_max = ref.x_min, ref.x_max
         ref.y = Graph.normalise(ref.y, norm=norm)
         # area_ref = trapezoid(a.y, a.x)
@@ -265,19 +293,23 @@ class Graph:
 
         confidence = 0.01
         initial_guess = [0.2, -0.000001]
-        self.log.debug(initial_guess)
+        shift = (user_shift, user_shift) if user_shift else (-1, 1)
+        sigma = (user_sigma, user_sigma) if user_sigma else (0.08, 0.21)
         default_guess = [0.1415, 0]  # the σ correspond to a FWHM of 0.33 eV
         result = opt.minimize(
             optimiser,
             initial_guess,
-            bounds=[(0.08, 0.21), (-1, 1)],  # FWHM is between 0.2 and 0.5 eV
+            bounds=[sigma, shift],  # FWHM is between 0.2 and 0.5 eV
             options={"maxiter": 10000},
             method="Powell",
         )
         if result.success:
             sigma, shift = result.x
             self.log.info(
-                f"Convergence of parameters succeeded in {result.nfev} steps. Confidence level: {(1-result.fun/2)*100:.2f}%. Parameters obtained\n\t- σ = {sigma:.4f} eV (that correspond to a FWHM = {(sigma*np.sqrt(2*np.log(2))*2):.4f} eV)\n\t- Δ = {shift:.4f} eV (in this case, a negative shift corresponds to a RED-shift)"
+                f"Convergence of parameters succeeded in {result.nfev} steps.\n"
+                "Confidence level: {(1-result.fun/2)*100:.2f}%. Parameters obtained\n"
+                f"\t- σ = {sigma:.4f} eV (that correspond to a FWHM = {(sigma*np.sqrt(2*np.log(2))*2):.4f} eV)\n"
+                f"\t- Δ = {shift:.4f} eV (in this case, a negative shift corresponds to a RED-shift)"
             )
             Y_COMP = Graph.normalise(
                 self.calc_graph(
@@ -287,7 +319,10 @@ class Graph:
             )
         else:
             self.log.info(
-                f"Convergence of parameters NOT succeeded within a threshold of {confidence:.2f}u.a. for the ∆ε. Parameters used to convolute the saved graph\n\t- σ = {default_guess[0]:.4f} eV (that correspond to a FWHM = {(default_guess[0]*np.sqrt(2*np.log(2))*2):.4f} eV)\n\t- Δ = 0.0000 eV"
+                f"Convergence of parameters NOT succeeded.\n"
+                "Parameters used to convolute the saved graph\n"
+                f"\t- σ = {default_guess[0]:.4f} eV (that correspond to a FWHM = {(default_guess[0]*np.sqrt(2*np.log(2))*2):.4f} eV)\n"
+                f"\t- Δ = 0.0000 eV"
             )
             Y_COMP = Graph.normalise(
                 self.calc_graph(
@@ -367,10 +402,10 @@ class Graph:
 
 
 class Ref_graph:
-    def __init__(self, fname: str, log, is_ev: bool = False):
+    def __init__(self, fname: str, log, is_ev: bool = False, invert : bool = False):
         data = np.loadtxt(fname, dtype=float)
         self.x = data[:, 0] if is_ev else FACTOR_EV_NM / data[:, 0]
-        self.y = data[:, 1]
+        self.y = data[:, 1] * (1 if not invert else -1)
 
         self.log = log
 
@@ -383,84 +418,84 @@ class Ref_graph:
         return float(max(self.x))
 
 
-# class Test_Graph:
-#     def __init__(self, fname):
-#         data = np.loadtxt(fname, dtype=float)
-#         self.x = np.linspace(
-#             FACTOR_EV_NM / 100, FACTOR_EV_NM / (800), 10**5
-#         )  # eV x axis
-#         self.eV = FACTOR_EV_NM / data[:, 0]
-#         self.imp = data[:, 1]
-#         # self.y = Graph.normalise(self.y)
+class Test_Graph:
+    def __init__(self, fname):
+        data = np.loadtxt(fname, dtype=float)
+        self.x = np.linspace(
+            FACTOR_EV_NM / 100, FACTOR_EV_NM / (800), 10**5
+        )  # eV x axis
+        self.eV = FACTOR_EV_NM / data[:, 0]
+        self.imp = data[:, 1]
+        # self.y = Graph.normalise(self.y)
 
-#     def calc_graph(self, shift, sigma):
-#         x = self.x.copy()
-#         y = np.zeros(x.shape)
+    def calc_graph(self, shift, sigma):
+        x = self.x.copy()
+        y = np.zeros(x.shape)
 
-#         y_ = np.zeros(x.shape)
-#         for ev, I in zip(self.eV, self.imp):
-#             y_ += Graph.gaussian(x, ev + shift, I, sigma)
-#         y += y_
+        y_ = np.zeros(x.shape)
+        for ev, I in zip(self.eV, self.imp):
+            y_ += Graph.gaussian(x, ev + shift, I, sigma)
+        y += y_
 
-#         return y
+        return y
 
 
-# if __name__== "__main__": # pragma: no cover:
-#     import scipy.optimize as opt
+if __name__ == "__main__":  # pragma: no cover:
+    import scipy.optimize as opt
 
-#     os.chdir("src")
+    os.chdir("src")
 
-#     a = Ref_graph("../files/ecd_ref.txt", None)
-#     x_min, x_max = a.x_min, a.x_max
-#     a.y = Graph.normalise(a.y)
-#     # area_ref = trapezoid(a.y, a.x)
+    a = Ref_graph("../files/ecd_ref.txt", None)
+    x_min, x_max = a.x_min, a.x_max
+    a.y = Graph.normalise(a.y)
+    # area_ref = trapezoid(a.y, a.x)
 
-#     # resampling the experimental data, in order to fetch the x_exp.size
-#     X = np.linspace(FACTOR_EV_NM / 100, FACTOR_EV_NM / (800), 10**5)
+    # resampling the experimental data, in order to fetch the x_exp.size
+    X = np.linspace(FACTOR_EV_NM / 100, FACTOR_EV_NM / (800), 10**5)
 
-#     Y_exp_interp = np.interp(X, a.x, a.y, left=0, right=0)
+    Y_exp_interp = np.interp(X, a.x, a.y, left=0, right=0)
 
-#     computed = Test_Graph("../files/impulse.dat")
+    computed = Test_Graph("../files/impulse.dat")
 
-#     graphs = {}
+    graphs = {}
 
-#     def optimiser(variables):
-#         sigma, shift, threshold = variables
-#         Y_comp = Graph.normalise(computed.calc_graph(shift, sigma))
+    def optimiser(variables):
+        sigma, shift, threshold = variables
+        Y_comp = Graph.normalise(computed.calc_graph(shift, sigma))
 
-#         # RMSD calculation
-#         rmsd = np.sqrt(
-#             np.mean(
-#                 (
-#                     Y_comp[np.where((X >= x_min) & (X <= x_max))]
-#                     - Y_exp_interp[np.where((X >= x_min) & (X <= x_max))]
-#                 )
-#                 ** 2
-#             )
-#         )
-#         return rmsd
+        # RMSD calculation
+        rmsd = np.sqrt(
+            np.mean(
+                (
+                    Y_comp[np.where((X >= x_min) & (X <= x_max))]
+                    - Y_exp_interp[np.where((X >= x_min) & (X <= x_max))]
+                )
+                ** 2
+            )
+        )
+        return rmsd
 
-#     confidence = 0.01
-#     initial_guess = [0.2, -0.000001, confidence]
-#     result = opt.minimize(
-#         optimiser,
-#         initial_guess,
-#         bounds=[(0.08, 0.21), (-1, 1), (0.01, 0.01)],
-#         options={"maxiter": 10000},
-#         method="Powell",
-#     )
-#     if result.success:
-#         print(result)
-#         print((result.x), result.fun, (1 - result.fun / 2) * 100, result.nfev)
-#     else:
-#         print("NO")
+    confidence = 0.01
+    initial_guess = [0.2, -0.000001, confidence]
+    result = opt.minimize(
+        optimiser,
+        initial_guess,
+        bounds=[(0.08, 0.21), (-1, 1), (0.01, 0.01)],
+        options={"maxiter": 10000},
+        method="Powell",
+    )
+    if result.success:
+        print(result)
+        print((result.x), result.fun, (1 - result.fun / 2) * 100, result.nfev)
+    else:
+        print("NO")
 
-#     sigma, shift, thr = result.x
+    sigma, shift, thr = result.x
 
-#     plt.plot(X, Y_exp_interp)
-#     plt.fill_between(X, Y_exp_interp - confidence, Y_exp_interp + confidence, alpha=0.2)
-#     for i in graphs:
-#         plt.plot(X, graphs[i], "--", alpha=0.4)
+    plt.plot(X, Y_exp_interp)
+    plt.fill_between(X, Y_exp_interp - confidence, Y_exp_interp + confidence, alpha=0.2)
+    for i in graphs:
+        plt.plot(X, graphs[i], "--", alpha=0.4)
 
-#     plt.plot(X, Graph.normalise(computed.calc_graph(shift, sigma)))
-#     plt.show()
+    plt.plot(X, Graph.normalise(computed.calc_graph(shift, sigma)))
+    plt.show()

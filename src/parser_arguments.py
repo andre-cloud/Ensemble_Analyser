@@ -128,6 +128,39 @@ def parser_arguments():
         default="orca",
     )
 
+    graph_group = parser.add_argument_group("Graph Parameters")
+    graph_group.add_argument(
+        "--final_lambda",
+        help="Define the upper limit for the convolution. Default: %(default)s nm",
+        default=800,
+    )
+
+    graph_group.add_argument(
+        "--definition",
+        help="Define the Number of samples to generate the linear space of the X axis: 10^definition. USE WITH CAUTION. Default %(default)s",
+        default=4,
+    )
+
+    graph_group.add_argument(
+        "--fwhm",
+        help="Definte the Full Width @ Half Maximum (FWHM) for the gaussian convolution. If not defined and reference graph is present, will be calculated automatically.",
+        default=None,
+        type=float,
+    )
+
+    graph_group.add_argument(
+        "--shift",
+        help="Definte the shift of the graph after the convolution. If not defined and reference graph is present, will be calculated automatically.",
+        default=None,
+    )
+
+    graph_group.add_argument(
+        "--invert",
+        help="Invert the ECD reference graph",
+        action="store_true",
+        default=False    
+    )
+
     other_group = parser.add_argument_group("Other Parameters")
     other_group.add_argument(
         "-o",
@@ -153,7 +186,7 @@ def parser_arguments():
         action="store_true",
     )
 
-    if __name__== "__main__": # pragma: no cover:
+    if __name__ == "__main__":  # pragma: no cover:
         parser.print_help()
 
     a = sys.argv
@@ -166,5 +199,5 @@ def parser_arguments():
     return parser.parse_args()
 
 
-if __name__== "__main__": # pragma: no cover:
+if __name__ == "__main__":  # pragma: no cover:
     parser_arguments()

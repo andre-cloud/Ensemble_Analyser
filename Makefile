@@ -8,5 +8,5 @@ check:
 test:
 	/Users/andrea/opt/miniconda3/bin/python -m coverage run --source=. -m pytest
 	/Users/andrea/opt/miniconda3/bin/python -m coverage html
-	/Users/andrea/opt/miniconda3/bin/python -m coverage report
+	# /Users/andrea/opt/miniconda3/bin/python -m coverage report
 	rm *xyz

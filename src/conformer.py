@@ -1,6 +1,6 @@
 try:
     from src.IOsystem import mkdir
-except ImportError as e: # pragma: no cover
+except ImportError as e:  # pragma: no cover
     print(e)
     from IOsystem import mkdir
 

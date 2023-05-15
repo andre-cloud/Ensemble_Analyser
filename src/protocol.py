@@ -7,7 +7,7 @@ from ase.calculators.orca import ORCA
 DEBUG = os.getenv("DEBUG")
 
 
-def load_protocol(file: str): # pragma: no cover
+def load_protocol(file: str):  # pragma: no cover
     default = "ensemble_analyser/parameters_file/default_protocol.json"
     return json.load(open(default if not file else file))
 
@@ -138,12 +138,12 @@ class Protocol:
         if not self.thrGMAX:
             self.thrGMAX = thr_json[c]["thrGMAX"]
 
-    def __str__(self): # pragma: no cover
+    def __str__(self):  # pragma: no cover
         if self.solvent:
             return f"{self.functional}/{self.basis} - {self.solvent}"
         return f"{self.functional}/{self.basis}"
 
-    def __repr__(self): # pragma: no cover
+    def __repr__(self):  # pragma: no cover
         if self.solvent:
             return f"{self.functional}/{self.basis} - {self.solvent}"
         return f"{self.functional}/{self.basis}"

@@ -7,7 +7,7 @@ import numpy as np
 try:
     from src.ioFile import save_snapshot
     from src.logger import DEBUG, ordinal
-except ImportError as e: # pragma: no cover
+except ImportError as e:  # pragma: no cover
     print(e)
     from ioFile import save_snapshot
     from logger import DEBUG, ordinal

@@ -9,7 +9,8 @@ try:
     from src.pruning import calculate_rel_energies, check_ensemble
     from src.grapher import Graph
     from src.clustering import perform_PCA
-except ImportError as e: # pragma: no cover
+    from src.title import title
+except ImportError as e:  # pragma: no cover
     print(e)
     from conformer import Conformer
     from ioFile import read_ensemble, save_snapshot
@@ -21,6 +22,7 @@ except ImportError as e: # pragma: no cover
     from pruning import calculate_rel_energies, check_ensemble
     from grapher import Graph
     from clustering import perform_PCA
+    from title import title
 
 import ase
 import time
@@ -29,6 +31,7 @@ import datetime
 import logging
 from tabulate import tabulate
 import os
+from typing import Union
 
 
 MAX_TRY = 5
@@ -231,7 +234,17 @@ def create_summary(title, conformers, log):
 
 
 def start_calculation(
-    conformers, protocol, cpu: int, temperature: float, start_from: int, log
+    conformers,
+    protocol,
+    cpu: int,
+    temperature: float,
+    start_from: int,
+    log,
+    final_lambda=800.0,
+    definition=4,
+    FWHM: Union[None, float] = None,
+    shift: Union[None, float] = None,
+    invert=False,
 ) -> None:
     """
     Main calculation loop
@@ -255,7 +268,17 @@ def start_calculation(
             f.write(str(p.number))
         run_protocol(conformers, p, temperature, cpu, log)
         if p.graph:
-            Graph(conformers, p, log, temperature)
+            Graph(
+                confs=conformers,
+                protocol=p,
+                log=log,
+                T=temperature,
+                final_lambda=final_lambda,
+                definition=definition,
+                FWHM=FWHM,
+                shift=shift,
+                invert=invert,
+            )
 
     save_snapshot("final_ensemble.xyz", conformers, log)
     log.info(f'{"="*15}\nCALCULATIONS ENDED\n{"="*15}\n\n')
@@ -297,7 +320,7 @@ def create_protocol(p, log) -> list:
 
     protocol = []
 
-    log.info("Loading Protocol\n")
+    log.debug("Loading Protocol\n")
     last_prot_with_freq = None
     for idx, d in p.items():
         func = d.get("functional", None)
@@ -334,6 +357,7 @@ def create_protocol(p, log) -> list:
         protocol.append(Protocol(number=idx, **d))
 
     log.info(
+        ""\
         "\n".join(
             (
                 f"{i.number}: {str(i)} - {i.calculation_level}\n {i.thr}"
@@ -361,6 +385,11 @@ def main():
             "output": args.output,
             "cpu": args.cpu,
             "temperature": args.temperature,
+            "final_lambda": args.final_lambda,
+            "definition": args.definition,
+            "fwhm": args.fwhm,
+            "shift": args.shift,
+            "invert": args.invert,
         }
         json.dump(settings, open("settings.json", "w"), indent=4)
 
@@ -373,10 +402,17 @@ def main():
     )
     cpu = settings.get("cpu", args.cpu)
     temperature = settings.get("temperature", args.temperature)
+    final_lambda = settings.get("final_lambda", 800)
+    definition = settings.get("definition", 4)
+    fwhm = settings.get("fwhm", None)
+    shift = settings.get("shift", None)
+    invert = settings.get("invert", False)
 
     # initiate the log
     log = create_log(output)
     logging.getLogger("matplotlib").disabled = False
+
+    log.info(title)
 
     if args.restart:
         # reload the previous information from checkpoint file
@@ -405,4 +441,9 @@ def main():
         temperature=temperature,
         start_from=int(start_from),
         log=log,
+        final_lambda=final_lambda,
+        definition=definition,
+        FWHM=fwhm,
+        shift=shift,
+        invert=invert,
     )
