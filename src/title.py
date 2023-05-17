@@ -1,5 +1,6 @@
-title = """
 
+version = '0.1.0'
+text =f"""
 
 ███████╗███╗░░██╗░██████╗███████╗███╗░░░███╗██████╗░██╗░░░░░███████╗
 ██╔════╝████╗░██║██╔════╝██╔════╝████╗░████║██╔══██╗██║░░░░░██╔════╝
@@ -15,12 +16,16 @@ title = """
 ██║░░██║██║░╚███║██║░░██║███████╗░░░██║░░░██████╔╝███████╗██║░░██║
 ╚═╝░░╚═╝╚═╝░░╚══╝╚═╝░░╚═╝╚══════╝░░░╚═╝░░░╚═════╝░╚══════╝╚═╝░░╚═╝
 
-                    ---   Andrea Pellegrini  ---                    
+---   Andrea Pellegrini  ---
 
-                          MIT license
-                           v. 0.1.0
 
-    GitHub : https://github.com/andre-cloud/Ensemble_Analyser.git
+MIT license
+v. {version}
 
+GitHub: https://github.com/andre-cloud/Ensemble_Analyser.git
 
 """
+
+
+title = '\n'.join([line.center(80, ' ') for line in text.splitlines()])
+print(title)
