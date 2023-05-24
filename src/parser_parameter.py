@@ -60,6 +60,7 @@ def get_opt_geometry(fl: str, calc: str, log) -> np.ndarray:
     if not opt_done:
         log.error(f"The optimization did not find a stationary point")
 
+    fl = ''.join(fl)
     fl = fl.split(regex_parsing[calc]["opt_done"])[-1]
     fl = (
         fl.split(regex_parsing[calc]["geom_start"])[-1]
@@ -97,7 +98,7 @@ def get_conf_parameters(conf, number: int, p, time, temp: float, log) -> bool:
 
     if p.opt:
         # Fetch and set the optimized geometry
-        conf.last_geometry = get_opt_geometry(fl, p.calculator)
+        conf.last_geometry = get_opt_geometry(fl, p.calculator, log)
 
     try:
         e = float(
@@ -105,7 +106,7 @@ def get_conf_parameters(conf, number: int, p, time, temp: float, log) -> bool:
             .strip()
             .split()[-1]
         )
-    except Exception as e:
+    except Exception as e: # pragma: no cover:
         log.error(e)
         return False
 

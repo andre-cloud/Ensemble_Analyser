@@ -8,7 +8,7 @@ from src.parser_parameter import get_opt_geometry
 
 def test_get_geom():
 
-    with open("tests/assets/geom.out") as f:
+    with open("tests/assets/protocol_1.out") as f:
         fl = f.read()
 
     exp_geom = np.array([[ 0.10927  ,  0.750046 , 0.429949],
