@@ -283,6 +283,8 @@ def start_calculation(
     save_snapshot("final_ensemble.xyz", conformers, log)
     log.info(f'{"="*15}\nCALCULATIONS ENDED\n{"="*15}\n\n')
 
+    # sort the final ensemble
+    conformers = sorted(conformers)
     calculate_rel_energies(conformers, temperature)
     create_summary("Final Summary", conformers, log)
 
