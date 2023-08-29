@@ -329,29 +329,7 @@ def create_protocol(p, log) -> list:
         add_input = d.get("add_input", "")
         graph = d.get("graph", False)
 
-        if not func:
-            log.critical(
-                f"{'='*20}\nCRITICAL ERROR\n{'='*20}\nFUNCTIONAL key must be passed in order to calculate energy.\nDFT functional or HF for Hartree-Fock calculation or semi-empirical methods (XTB1/XTB2/PM3/AM1 or similar supported by the calculator) (Problem at {ordinal(int(idx))} protocol definition)\n{'='*20}\nExiting\n{'='*20}\n"
-            )
-            raise IOError(
-                "There is an error in the input file with the definition of the functional. See the output file."
-            )
-
-        if graph:
-            if not add_input:
-                log.critical(
-                    f"{'='*20}\nCRITICAL ERROR\n{'='*20}\nADD_INPUT must be set so the proper calculation (TD-DFT or CASSCF/RASSCF) to simulate the electronic spectra (Problem at {ordinal(int(idx))} protocol definition)\n{'='*20}\n Exiting"
-                )
-                raise IOError(
-                    "There is an error in the input file with the definition of the functional. See the output file."
-                )
-            if not last_prot_with_freq:
-                log.critical(
-                    f"{'='*20}\nCRITICAL ERROR\n{'='*20}\nElectrical spectra requires Boltzmann population over ∆G. In the specified protocol there is NO frequency calculation turned on.\n{'='*20}\nExiting\n{'='*20}"
-                )
-            else:
-                # check_protocol_grapher()
-                pass
+        check_protocol(log, func, graph, add_input, idx, last_prot_with_freq)
 
         if not graph and d.get("freq"):
             last_prot_with_freq = int(idx)
@@ -359,7 +337,7 @@ def create_protocol(p, log) -> list:
         protocol.append(Protocol(number=idx, **d))
 
     log.info(
-        ""\
+        ""
         "\n".join(
             (
                 f"{i.number}: {str(i)} - {i.calculation_level}\n {i.thr}"
@@ -369,6 +347,47 @@ def create_protocol(p, log) -> list:
         + "\n"
     )
     return protocol
+
+
+def check_protocol(log, func, graph, add_input, idx, last_prot_with_freq) -> None:
+    """
+    Sanity check of the input settings
+
+    log ! logger
+    func | str : the functional name
+    graph | bool : calculate the TD-DFT graphs
+    add_input | str : additional input to put in the input of the calculation
+    idx | int : index of the protocol
+    last_prot_with_freq | None, int : last index with frequency calculation
+
+    return None
+    """
+
+    if not func:
+        log.critical(
+            f"{'='*20}\nCRITICAL ERROR\n{'='*20}\nFUNCTIONAL key must be passed in order to calculate energy.\nDFT functional or HF for Hartree-Fock calculation or semi-empirical methods (XTB1/XTB2/PM3/AM1 or similar supported by the calculator) (Problem at {ordinal(int(idx))} protocol definition)\n{'='*20}\nExiting\n{'='*20}\n"
+        )
+        raise IOError(
+            "There is an error in the input file with the definition of the functional. See the output file."
+        )
+
+    if graph:
+        if not add_input:
+            log.critical(
+                f"{'='*20}\nCRITICAL ERROR\n{'='*20}\nADD_INPUT must be set so the proper calculation (TD-DFT or CASSCF/RASSCF) to simulate the electronic spectra (Problem at {ordinal(int(idx))} protocol definition)\n{'='*20}\n Exiting\n{'='*20}\n"
+            )
+            raise IOError(
+                "There is an error in the input file with the definition of the functional. See the output file."
+            )
+        if not last_prot_with_freq:
+            log.critical(
+                f"{'='*20}\nCRITICAL ERROR\n{'='*20}\nElectrical spectra requires Boltzmann population over ∆G. In the specified protocol there is NO frequency calculation turned on.\n{'='*20}\nExiting\n{'='*20}"
+            )
+        else:
+            # check_protocol_grapher()
+            pass
+
+    return None
 
 
 def main():
@@ -412,6 +431,7 @@ def main():
 
     # initiate the log
     log = create_log(output)
+    # deactivate the log of matplotlib
     logging.getLogger("matplotlib").disabled = False
 
     log.info(title)

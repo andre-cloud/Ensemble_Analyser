@@ -158,7 +158,7 @@ def parser_arguments():
         "--invert",
         help="Invert the ECD reference graph",
         action="store_true",
-        default=False    
+        default=False,
     )
 
     other_group = parser.add_argument_group("Other Parameters")

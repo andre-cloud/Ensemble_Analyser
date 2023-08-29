@@ -27,7 +27,7 @@ class Graph:
         definition=4,
         FWHM: Union[None, float] = None,
         shift: Union[None, float] = None,
-        invert: bool = False
+        invert: bool = False,
     ):
         """
 
@@ -65,7 +65,7 @@ class Graph:
                 fname=f"ecd_protocol_{self.protocol.number}_auto_conv.dat",
                 user_sigma=FWHM / (2 * np.sqrt(2 * np.log(2))) if FWHM else None,
                 user_shift=shift,
-                invert=invert
+                invert=invert,
             )
         else:
             ecd = self.calc_graph(
@@ -241,7 +241,7 @@ class Graph:
         norm=1,
         user_sigma=None,
         user_shift=None,
-        invert=False
+        invert=False,
     ) -> np.ndarray:
         """
         Optimization to find the best fitting values for the Gaussian convolution.
@@ -402,7 +402,7 @@ class Graph:
 
 
 class Ref_graph:
-    def __init__(self, fname: str, log, is_ev: bool = False, invert : bool = False):
+    def __init__(self, fname: str, log, is_ev: bool = False, invert: bool = False):
         data = np.loadtxt(fname, dtype=float)
         self.x = data[:, 0] if is_ev else FACTOR_EV_NM / data[:, 0]
         self.y = data[:, 1] * (1 if not invert else -1)
