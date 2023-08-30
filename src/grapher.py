@@ -17,6 +17,66 @@ FACTOR_EV_NM = h * c / (10**-9 * electron_volt)
 
 
 class Graph:
+    """
+    Generate electronic graphs (UV and ECD) and, if present "uv_ref.dat" or "ecd_ref.dat" file as mere xy file, it will automatically align the calculated graph with the reference.
+
+    Attributes
+    ----------
+    confs : list
+        Whole ensemble list
+
+    protocol : Protocol
+        Protocol that calculates the electronic spectra
+
+    log : logger.logger
+        Logger instance
+
+    T : float
+        temperature parsed in Kelvin [K]
+
+    final_lambda : float
+        Last wavelength to convolute the spectra
+
+    definition : int
+        Number of point for the wavelength interval
+
+    x : np.array
+        Spanned energies in eV
+
+    spectra : list
+        Saving all spectra
+
+
+    Methods
+    -------
+    filter_outputs()
+        Parse all information at once for each conformers
+
+    get_uv()
+        Returns the (x, y) pair list of impulse for the UV spectra
+
+    get_ecd()
+        Returns the (x, y) pair list of impulse for the ECD spectra
+
+    auto_convolution()
+        Optimize the superimposition of the experimental with the calculated graph
+
+    calc_graph()
+        Gaussian convolution of the impulses
+
+    calc_pop()
+        Recalculate the Boltzmann population with G (if present) or with a the thermal correction at lower level
+
+    @staticmethod gaussian()
+        Build a gaussian function on the impulse
+
+    @staticmethod dump_graph()
+        Save the (x, y) for each point of the convoluted graph
+
+    @staticmethod normalize()
+        Normalize an array [-1, 1] on its maximum value.
+    """
+
     def __init__(
         self,
         confs,
@@ -260,7 +320,6 @@ class Graph:
         ref = Ref_graph(fname_ref, None, invert=invert)
         x_min, x_max = ref.x_min, ref.x_max
         ref.y = Graph.normalise(ref.y, norm=norm)
-        # area_ref = trapezoid(a.y, a.x)
 
         # resampling the experimental data, in order to fetch the x_exp.size
         X = self.x.copy()
@@ -291,7 +350,7 @@ class Graph:
             )
             return rmsd
 
-        confidence = 0.01
+        confidence = 0.025
         initial_guess = [0.2, -0.000001]
         shift = (user_shift, user_shift) if user_shift else (-1, 1)
         sigma = (user_sigma, user_sigma) if user_sigma else (0.08, 0.21)
@@ -307,7 +366,7 @@ class Graph:
             sigma, shift = result.x
             self.log.info(
                 f"Convergence of parameters succeeded in {result.nfev} steps.\n"
-                "Confidence level: {(1-result.fun/2)*100:.2f}%. Parameters obtained\n"
+                f"Confidence level: {(1-result.fun/2)*100:.2f}%. Parameters obtained\n"
                 f"\t- σ = {sigma:.4f} eV (that correspond to a FWHM = {(sigma*np.sqrt(2*np.log(2))*2):.4f} eV)\n"
                 f"\t- Δ = {shift:.4f} eV (in this case, a negative shift corresponds to a RED-shift)"
             )
@@ -317,6 +376,8 @@ class Graph:
                 ),
                 norm=norm,
             )
+            # TODO: introducing the normalisation ONLY in the window considered?
+
         else:
             self.log.info(
                 f"Convergence of parameters NOT succeeded.\n"
@@ -418,7 +479,7 @@ class Ref_graph:
         return float(max(self.x))
 
 
-class Test_Graph:
+class Test_Graph:  # pragma: no cover:
     def __init__(self, fname):
         data = np.loadtxt(fname, dtype=float)
         self.x = np.linspace(
@@ -475,7 +536,7 @@ if __name__ == "__main__":  # pragma: no cover:
         )
         return rmsd
 
-    confidence = 0.01
+    confidence = 0.025
     initial_guess = [0.2, -0.000001, confidence]
     result = opt.minimize(
         optimiser,
@@ -486,6 +547,7 @@ if __name__ == "__main__":  # pragma: no cover:
     )
     if result.success:
         print(result)
+        print()
         print((result.x), result.fun, (1 - result.fun / 2) * 100, result.nfev)
     else:
         print("NO")

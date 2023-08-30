@@ -191,15 +191,7 @@ def last_protocol_completed(conf, idx: int) -> bool:
         if i.energies.get(int(idx)) is not None and i.active:
             tmp.append(i)
 
-    return (
-        len(
-            [
-                # i for i in conf if i.energies.get(int(idx)) is not None and i.active
-                tmp
-            ]
-        )
-        == 0
-    )
+    return len([tmp]) == 0
 
 
 def create_summary(title, conformers, log):

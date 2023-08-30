@@ -12,6 +12,51 @@ class Conformer:
     """
     Storing all the information on each conformer for all the parts of the protocol
 
+    Attributes
+    ----------
+    number : int
+        index of the conformer
+    _initial_geometry : list
+        Initial geometry of the conformer (only XYZ of each atom)
+    charge : int
+        Charge of the molecule
+    mult : int
+        Spin multiplicity of the molecule
+    last_geometry : lit
+        Last parsed geometry of the conformer (only XYZ of each atom)
+    atoms : list
+        List of the atoms
+    energies : dict
+        JSON dictionary to keep track of all the calculated energies and some other parameters (dipole and B)
+    active : bool
+        Keep track if the conformer is still part of the ensemble
+    folder : str
+        Name of the folder to keep the outputs of the conformer's calculation
+    weight_mass : float
+        MW of the molecule
+    rotary : list
+        3D vector for the rotary constant
+    momentum : list
+        3D vector for the dipole moment
+    get_energy : float
+        Get the last available energy, preferring G; if not possible, E is returned
+    _last_energy : dict
+        Last element added in energies attribute
+
+    Methods
+    -------
+    get_ase_atoms(calc=None)
+        Returns the atoms as ase.Atom in a list
+
+    write_xyz()
+        Returns the XYZ-file string
+
+    create_log()
+        Returns the string necessary to output the information
+
+    @staticmethod load_raw()
+        Load a conformer info from a JSON entry
+
     """
 
     def __init__(
