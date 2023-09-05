@@ -141,3 +141,4 @@ protocol_dump.json
 checkpoint.json
 last_protocol
 *dat
+try.py

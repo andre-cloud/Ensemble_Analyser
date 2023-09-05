@@ -88,17 +88,14 @@ def get_conf_parameters(conf, number: int, p, time, temp: float, log) -> bool:
 
     return | bool : calculation ended correctly and not crashed due to server error
     """
-
-    # if p.opt:
-    #     data = cclib.io.ccread(f'{conf.folder}/protocol_{p.number}.out')
-    #     conf.last_geometry = data.atomcoords[-1]
-
+    
     with open(os.path.join(conf.folder, f"protocol_{number}.out")) as f:
         fl = f.readlines()
 
-    if p.opt:
-        # Fetch and set the optimized geometry
-        conf.last_geometry = get_opt_geometry(fl, p.calculator, log)
+    # already handeled in the opt function 
+    # if p.opt:
+    #     # Fetch and set the optimized geometry
+    #     conf.last_geometry = get_opt_geometry(fl, p.calculator, log)
 
     try:
         e = float(

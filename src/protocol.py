@@ -47,16 +47,19 @@ class Protocol:
         number: int,
         functional: str,
         basis: str = "def2-svp",
-        solvent={},
+        solvent: dict = {},
         opt: bool = False,
         freq: bool = False,
         add_input: str = "",
         freq_fact: float = 1,
         graph: bool = False,
-        calculator="orca",
+        calculator: str = "orca",
         thrG: float = None,
         thrB: float = None,
         thrGMAX: float = None,
+        constrains: list[int] = [],
+        maxstep : float = 0.2,
+        fmax : float = 0.01
     ):
         self.number = number
         self.functional = functional.upper()
@@ -70,6 +73,9 @@ class Protocol:
         self.thrGMAX = thrGMAX
         self.get_thrs(self.load_threshold())
         self.calculator = calculator
+        self.constrains = constrains
+        self.maxstep = maxstep
+        self.fmax = fmax
 
         self.freq_fact = freq_fact
         self.graph = graph
@@ -111,18 +117,24 @@ class Protocol:
         )
         return json.load(open(default))
 
-    def get_calculator(self, cpu, charge: int, mult: int):
+    def get_calculator(self, cpu, charge: int, mult: int, mode: str):
         """
         Get the calculator from the user selector
 
         cpu | int : allocated CPU
         charge | int : charge of the molecule
         mult | int : multiplicity of the molecule
+        mode | str {opt, freq, energy}: type of calculation required
         """
 
-        calc = {"orca": self.get_orca_calculator(cpu, charge, mult)}
+        calc = {"orca": {
+            "opt": self.orca_opt,
+            "freq": self.orca_freq,
+            "energy": self.calc_orca_std,
+            },
+        }
 
-        return calc[self.calculator]
+        return calc[self.calculator][mode](cpu, charge, mult)
 
     def get_thrs(self, thr_json):
         """
@@ -148,8 +160,14 @@ class Protocol:
             return f"{self.functional}/{self.basis} - {self.solvent}"
         return f"{self.functional}/{self.basis}"
 
-    def get_orca_calculator(self, cpu: int, charge: int, mult: int):
-        # possibilities for solvent definitions
+
+
+
+
+
+    # ORCA CALCULATOR
+
+    def orca_common_str(self, cpu):
         if self.solvent:
             if "xtb" in self.functional.lower():
                 solv = f"ALPB({self.solvent.solvent})"
@@ -158,34 +176,84 @@ class Protocol:
         else:
             solv = ""
 
-        # ! B3LYP def2-SVP FREQ CPCM(solvent)
-        simple_input = f'{self.functional} {self.basis} {"freq" if self.freq else ""} {"opt" if self.opt else ""} {solv} nopop'
+        si = f'{self.functional} {self.basis} {solv} nopop'
 
-        # %cpcm
-        #     smd True
-        #     smdSolvent solvent
-        # end
         smd = ""
         if self.solvent and "xtb" not in self.functional.lower():
             smd = self.solvent.orca_input_smd()
 
+        ob = (f"%pal nprocs {cpu} end "
+            + smd
+            + self.add_input
+            + (" %maxcore 4000" if "maxcore" not in self.add_input else ""))
+
+        return si, ob
+
+    def calc_orca_std(self, cpu: int, charge: int, mult: int):
+
+        simple_input , ob = self.orca_common_str(cpu)
         label = "ORCA"
         calculator = ORCA(
             label=label,
             orcasimpleinput=simple_input,
-            orcablocks=f"%pal nprocs {cpu} end "
-            + smd
-            + self.add_input
-            + (" %maxcore 4000" if "maxcore" not in self.add_input else "")
-            + " %geom maxiter 1000 end"
-            if self.opt
-            else "",
+            orcablocks=ob,
             charge=charge,
             mult=mult,
-            task="energy",
         )
 
         return calculator, label
+    
+    def orca_opt(self, cpu: int, charge: int, mult: int):
+        calculator, label = self.calc_orca_std(cpu, charge, mult)
+        calculator.parameters["orcasimpleinput"] += " engrad"
+
+        return calculator, label
+    
+    def orca_freq(self, cpu: int, charge: int, mult: int):
+        calculator, label = self.calc_orca_std(cpu, charge, mult)
+        calculator.parameters["orcasimpleinput"] += " freq"
+
+        return calculator, label
+
+
+    # def get_orca_calculator(self, cpu: int, charge: int, mult: int):
+    #     # possibilities for solvent definitions
+    #     if self.solvent:
+    #         if "xtb" in self.functional.lower():
+    #             solv = f"ALPB({self.solvent.solvent})"
+    #         else:
+    #             solv = f" cpcm({self.solvent.solvent})"
+    #     else:
+    #         solv = ""
+
+    #     # ! B3LYP def2-SVP FREQ CPCM(solvent)
+    #     simple_input = f'{self.functional} {self.basis} {"freq" if self.freq else ""} {"opt" if self.opt else ""} {solv} nopop'
+
+    #     # %cpcm
+    #     #     smd True
+    #     #     smdSolvent solvent
+    #     # end
+    #     smd = ""
+    #     if self.solvent and "xtb" not in self.functional.lower():
+    #         smd = self.solvent.orca_input_smd()
+
+    #     label = "ORCA"
+    #     calculator = ORCA(
+    #         label=label,
+    #         orcasimpleinput=simple_input,
+    #         orcablocks=f"%pal nprocs {cpu} end "
+    #         + smd
+    #         + self.add_input
+    #         + (" %maxcore 4000" if "maxcore" not in self.add_input else "")
+    #         + " %geom maxiter 1000 end"
+    #         if self.opt
+    #         else "",
+    #         charge=charge,
+    #         mult=mult,
+    #         task="energy",
+    #     )
+
+    #     return calculator, label
 
     @staticmethod
     def load_raw(json):
@@ -203,6 +271,9 @@ class Protocol:
             thrGMAX=json["thrGMAX"],
             freq_fact=json["freq_fact"],
             graph=json["graph"],
+            constrains=json["constrains"], 
+            maxstep = json["maxstep"],
+            fmax=json["fmax"]
         )
 
     # {'charge': 0, 'mult': 1, 'task': 'gradient', 'orcasimpleinput': 'B3LYP def2-svp ', 'orcablocks': ''}

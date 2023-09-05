@@ -10,6 +10,7 @@ try:
     from src.grapher import Graph
     from src.clustering import perform_PCA
     from src.title import title
+    from src.calculations import optimize, calc_freq, single_point
 except ImportError as e:  # pragma: no cover
     print(e)
     from conformer import Conformer
@@ -23,6 +24,7 @@ except ImportError as e:  # pragma: no cover
     from grapher import Graph
     from clustering import perform_PCA
     from title import title
+    from calculations import optimize, calc_freq, single_point
 
 import ase
 import time
@@ -58,14 +60,20 @@ def launch(idx, conf, protocol, cpu, log, temp, ensemble, try_num: int = 1) -> N
     try:
         st = time.perf_counter()
 
-        calculator, label = protocol.get_calculator(
-            cpu=cpu, charge=conf.charge, mult=conf.mult
-        )
-        atm = conf.get_ase_atoms(calculator)
-        try:
-            atm.get_potential_energy()
-        except ase.calculators.calculator.PropertyNotImplementedError:
-            pass
+
+        if protocol.opt: 
+            atoms, label = optimize(conf, protocol, cpu=cpu, log=log)
+
+        if protocol.freq:
+            atoms, label = calc_freq(conf, protocol, cpu=cpu, log=log)
+
+        if not (protocol.opt or protocol.freq):
+            atoms, label = single_point(conf, protocol, cpu=cpu, log=log)
+
+        # try:
+        #     atm.get_potential_energy()
+        # except ase.calculators.calculator.PropertyNotImplementedError:
+        #     pass
 
         end = time.perf_counter()
 

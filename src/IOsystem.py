@@ -1,6 +1,6 @@
 import numpy as np
 import shutil
-import json
+import json, subprocess
 import os
 
 
@@ -41,3 +41,16 @@ class SerialiseEncoder(json.JSONEncoder):
         if isinstance(obj, np.ndarray):
             return obj.tolist()
         return obj.__dict__
+
+
+
+def tail(file_path, num_lines):
+    with open(file_path) as f:
+        fl = f.readlines()
+
+    return "".join(fl[-num_lines:])
+
+
+
+if __name__=='__main__':
+    print(tail("orca.out", 4))

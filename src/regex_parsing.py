@@ -26,5 +26,7 @@ State  Energy     Wavelength     R         MX        MY        MZ
         "opt_done": "                    ***        THE OPTIMIZATION HAS CONVERGED     ***",
         "geom_start": """CARTESIAN COORDINATES (ANGSTROEM)
 ---------------------------------""",
+        "finish": "ORCA TERMINATED NORMALLY",
+        "ext": "out", 
     }
 }

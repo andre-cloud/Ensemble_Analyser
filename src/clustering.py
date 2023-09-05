@@ -29,12 +29,14 @@ def get_best_ncluster(coords):
 
 def calc_pca(confs: list, ncluster: Union[int, None] = None) -> tuple:
     """
-    Function that execute the actual PCA analysis. It wants to understand how conformations differ from each other based on their overall Cartesian coordinates
+    Function that execute the actual PCA analysis. 
+    It wants to understand how conformations differ from each other based on their overall Cartesian coordinates
 
     confs | list : whole list of the confomers
     ncluster | int : number of cluster to form using the KMean analysis
     return tuple(np.array, np.array) : PCA transformation, Clustered coordinates
     """
+
     # fetch all geometries and reshaping them to create the correct 2D matrix
     data = np.array([atom.last_geometry for atom in confs])
     coords_2d = np.reshape(data, (data.shape[0], data.shape[1] * data.shape[2]))
