@@ -201,7 +201,7 @@ class Protocol:
 
     def calc_orca_std(self, cpu: int, charge: int, mult: int):
 
-        simple_input , ob = self.orca_common_str(cpu)
+        simple_input, ob = self.orca_common_str(cpu)
         label = "ORCA"
         calculator = ORCA(
             label=label,
@@ -209,6 +209,7 @@ class Protocol:
             orcablocks=ob,
             charge=charge,
             mult=mult,
+            task="energy"
         )
 
         return calculator, label
