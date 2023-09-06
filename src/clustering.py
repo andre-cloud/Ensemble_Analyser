@@ -3,10 +3,13 @@ from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 from typing import Union
 import logging
 
 plt.set_loglevel("error")
+
+MARKERS = list(Line2D.markers.keys())
 
 
 def get_best_ncluster(coords):
@@ -62,6 +65,11 @@ def calc_pca(confs: list, ncluster: Union[int, None] = None) -> tuple:
     return pca_scores, clusters
 
 
+
+def obtain_markers_from_cluster(cluster: list):
+    return MARKERS[cluster]
+
+
 def save_PCA_snapshot(
     fname: str, title: str, pca_scores: np.ndarray, clusters: np.ndarray
 ) -> None:
@@ -76,7 +84,9 @@ def save_PCA_snapshot(
     """
 
     fig, ax = plt.subplots()
-    ax.scatter(pca_scores[:, 0], pca_scores[:, 1], c=clusters, marker="o")
+
+    for x, y, m in zip(pca_scores[:, 0], pca_scores[:, 1], np.array(list(map(obtain_markers_from_cluster, clusters)))): 
+        ax.scatter(x, y, marker=m)
     ax.set_xlabel("Principal Component 1")
     ax.set_ylabel("Principal Component 2")
     ax.set_title(title)

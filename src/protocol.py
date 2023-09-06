@@ -216,44 +216,8 @@ class Protocol:
         return calculator, label
 
 
-    # def get_orca_calculator(self, cpu: int, charge: int, mult: int):
-    #     # possibilities for solvent definitions
-    #     if self.solvent:
-    #         if "xtb" in self.functional.lower():
-    #             solv = f"ALPB({self.solvent.solvent})"
-    #         else:
-    #             solv = f" cpcm({self.solvent.solvent})"
-    #     else:
-    #         solv = ""
 
-    #     # ! B3LYP def2-SVP FREQ CPCM(solvent)
-    #     simple_input = f'{self.functional} {self.basis} {"freq" if self.freq else ""} {"opt" if self.opt else ""} {solv} nopop'
 
-    #     # %cpcm
-    #     #     smd True
-    #     #     smdSolvent solvent
-    #     # end
-    #     smd = ""
-    #     if self.solvent and "xtb" not in self.functional.lower():
-    #         smd = self.solvent.orca_input_smd()
-
-    #     label = "ORCA"
-    #     calculator = ORCA(
-    #         label=label,
-    #         orcasimpleinput=simple_input,
-    #         orcablocks=f"%pal nprocs {cpu} end "
-    #         + smd
-    #         + self.add_input
-    #         + (" %maxcore 4000" if "maxcore" not in self.add_input else "")
-    #         + " %geom maxiter 1000 end"
-    #         if self.opt
-    #         else "",
-    #         charge=charge,
-    #         mult=mult,
-    #         task="energy",
-    #     )
-
-    #     return calculator, label
 
     @staticmethod
     def load_raw(json):
@@ -276,4 +240,4 @@ class Protocol:
             fmax=json["fmax"]
         )
 
-    # {'charge': 0, 'mult': 1, 'task': 'gradient', 'orcasimpleinput': 'B3LYP def2-svp ', 'orcablocks': ''}
+
