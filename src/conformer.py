@@ -5,6 +5,7 @@ except ImportError as e:  # pragma: no cover
     from IOsystem import mkdir
 
 import numpy as np
+import random
 from ase.atoms import Atoms
 
 
@@ -77,6 +78,8 @@ class Conformer:
         self.atoms = atoms.copy()
         self.energies = {}
         self.active = True
+        self.color = "#%06x" % random.randint(0, 0xFFFFFF)
+
 
         # IO
         self.folder = f"conf_{self.number}"

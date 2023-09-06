@@ -42,6 +42,8 @@ def calc_pca(confs: list, ncluster: Union[int, None] = None) -> tuple:
 
     # fetch all geometries and reshaping them to create the correct 2D matrix
     data = np.array([atom.last_geometry for atom in confs])
+    colors = [atom.color for atom in confs]
+    numbers = [atom.number for atom in confs]
     coords_2d = np.reshape(data, (data.shape[0], data.shape[1] * data.shape[2]))
 
     # normalize it to have mean=0 and variance=1
@@ -62,16 +64,16 @@ def calc_pca(confs: list, ncluster: Union[int, None] = None) -> tuple:
     # Cluster the data
     kmeans = KMeans(n_clusters=n_c, n_init=10)
     clusters = kmeans.fit_predict(pca_scores)
-    return pca_scores, clusters
+    return pca_scores, clusters, colors, numbers
 
 
 
-def obtain_markers_from_cluster(cluster: list):
+def obtain_markers_from_cluster(cluster: int):
     return MARKERS[cluster]
 
 
 def save_PCA_snapshot(
-    fname: str, title: str, pca_scores: np.ndarray, clusters: np.ndarray
+    fname: str, title: str, pca_scores: np.ndarray, clusters: np.ndarray, colors : list, numbers : list
 ) -> None:
     """
     Graph and save the image of the PCA analysis
@@ -85,12 +87,16 @@ def save_PCA_snapshot(
 
     fig, ax = plt.subplots()
 
-    for x, y, m in zip(pca_scores[:, 0], pca_scores[:, 1], np.array(list(map(obtain_markers_from_cluster, clusters)))): 
-        ax.scatter(x, y, marker=m)
+    for x, y, m, c, n in zip(pca_scores[:, 0], pca_scores[:, 1], np.array(list(map(obtain_markers_from_cluster, clusters))), colors, numbers): 
+        ax.scatter(x, y, c=c, marker=m, label=f"CONF {n}")
     ax.set_xlabel("Principal Component 1")
     ax.set_ylabel("Principal Component 2")
     ax.set_title(title)
 
+    plt.legend(
+        loc='upper left', bbox_to_anchor=(1.05, 1.),
+          fancybox=True, shadow=True, ncol=2, title="Conformers"
+               )
     plt.tight_layout()
     plt.savefig(fname, dpi=300)
     return None
@@ -101,8 +107,8 @@ def perform_PCA(confs: list, ncluster: int, fname: str, title: str, log) -> None
     nc = ncluster if len(confs) > ncluster else len(confs) - 1
     if nc <= 2:
         return None
-    pca_scores, clusters = calc_pca(confs, ncluster=nc)
-    save_PCA_snapshot(fname, title, pca_scores, clusters)
+    pca_scores, clusters, colors, numbers = calc_pca(confs, ncluster=nc)
+    save_PCA_snapshot(fname, title, pca_scores, clusters, colors, numbers)
 
     return None
 
