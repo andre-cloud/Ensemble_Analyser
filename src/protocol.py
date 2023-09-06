@@ -30,11 +30,21 @@ class Solvent:
         self.smd = solv["smd"]
 
     def __str__(self):  # pragma: no cover
-        return f"SMD({self.solvent})" if self.smd else f"CPCM({self.solvent})"
+        if self.smd:
+            return f"SMD({self.solvent})"
+        elif self.solvent:
+            return f"CPCM({self.solvent})"
+        else: 
+            return "CPCM"
 
     def __repr__(self):  # pragma: no cover
-        return f"SMD({self.solvent})" if self.smd else f"CPCM({self.solvent})"
-
+        if self.smd:
+            return f"SMD({self.solvent})"
+        elif self.solvent:
+            return f"CPCM({self.solvent})"
+        else: 
+            return "CPCM"
+        
     def orca_input_smd(self):
         if self.smd:
             return f'%cpcm smd true smdsolvent "{self.solvent}" end'
@@ -59,7 +69,7 @@ class Protocol:
         thrGMAX: float = None,
         constrains: list[int] = [],
         maxstep : float = 0.2,
-        fmax : float = 0.01
+        fmax : float = 0.01, 
     ):
         self.number = number
         self.functional = functional.upper()
