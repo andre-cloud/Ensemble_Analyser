@@ -41,7 +41,7 @@ Usage
 
 - Run the calculation:
 ```bash
-python ensemble_calculation.py --ensemble <path/to/ensemble.xyz> --protocol <path/to/protocol.json>
+python ensemble_calculation.py --ensemble <path/to/ensemble.xyz> --protocol <path/to/protocol.json> --cpu <#cpus>
 ```
    - Optional arguments:
         - ```--output <output_file>```: Specify the output file name (default: output.out).
