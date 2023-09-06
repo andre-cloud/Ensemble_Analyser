@@ -67,7 +67,7 @@ class Protocol:
         thrG: float = None,
         thrB: float = None,
         thrGMAX: float = None,
-        constrains: list[int] = [],
+        constrains: list = [],
         maxstep : float = 0.2,
         fmax : float = 0.01, 
     ):
