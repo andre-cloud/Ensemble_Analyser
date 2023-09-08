@@ -30,7 +30,7 @@ def optimize(conf, protocol, cpu : int, log, try_ = 0):
         atoms.set_constraint(c)
     
     opt = BFGS(atoms, maxstep=protocol.maxstep, logfile=f"opt_p{protocol.number}_{conf.number}.log", trajectory=f"p{protocol.number}_{label}.trj")
-    opt.run(protocol.fmax)
+    opt.run(protocol.fmax, steps=1000)
 
     if not check_output(label, protocol.calculator):
         if try_ < MAX_TRY:

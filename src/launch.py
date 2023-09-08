@@ -284,9 +284,9 @@ def start_calculation(
     log.info(f'{"="*15}\nCALCULATIONS ENDED\n{"="*15}\n\n')
 
     # sort the final ensemble
-    conformers = sorted(conformers)
-    calculate_rel_energies(conformers, temperature)
-    create_summary("Final Summary", conformers, log)
+    c_ = sorted(conformers)
+    calculate_rel_energies(c_, temperature)
+    create_summary("Final Summary", c_, log)
 
     return None
 
@@ -383,9 +383,6 @@ def check_protocol(log, func, graph, add_input, idx, last_prot_with_freq) -> Non
             log.critical(
                 f"{'='*20}\nCRITICAL ERROR\n{'='*20}\nElectrical spectra requires Boltzmann population over ∆G. In the specified protocol there is NO frequency calculation turned on.\n{'='*20}\nExiting\n{'='*20}"
             )
-        else:
-            # check_protocol_grapher()
-            pass
 
     return None
 
