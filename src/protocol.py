@@ -211,7 +211,6 @@ class Protocol:
             orcablocks=ob,
             charge=charge,
             mult=mult,
-            task="energy"
         )
 
         return calculator, label
