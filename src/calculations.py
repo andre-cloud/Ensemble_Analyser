@@ -26,7 +26,7 @@ def optimize(conf, protocol, cpu : int, log, try_ = 0):
     atoms = conf.get_ase_atoms(calc)
 
     if protocol.constrains: 
-        c = FixAtoms(protocol.constrains)
+        c = FixAtoms(indices=list(protocol.constrains))
         atoms.set_constraint(c)
     
     opt = BFGS(atoms, maxstep=protocol.maxstep, logfile=f"opt_p{protocol.number}_{conf.number}.log", trajectory=f"p{protocol.number}_{label}.trj")
