@@ -181,8 +181,8 @@ class Protocol:
         if self.solvent:
             if "xtb" in self.functional.lower():
                 solv = f"ALPB({self.solvent.solvent})"
-            elif self.solvent.solvent:
-                solv = f" CPCM({self.solvent.solvent})"
+            elif self.solvent.solvent.strip():
+                solv = f" CPCM({self.solvent.solvent.strip()})"
             else:
                 solv = f" CPCM"
         else:

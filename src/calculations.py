@@ -36,7 +36,15 @@ def optimize(conf, protocol, cpu : int, log, try_ = 0):
         if try_ < MAX_TRY:
             optimize(conf, protocol, cpu, log, try_+1)
         else:
-            raise 
+            with open(f"{label}.{regex_parsing[calc]['ext']}") as f:
+                fl = f.read()
+            log.error("\n".join(fl.splitlines()[-6:-3]))
+            log.critical(
+                f"\n{'='*20}\nCRITICAL ERROR\n{'='*20}\nSome sort of error have been encountered during the calculation of the calculator.\n{'='*20}\nExiting\n{'='*20}\n"
+            )
+            raise RuntimeError(
+                "Some sort of error have been encountered during the calculation of the calculator."
+            ) 
 
     set_last_geometry(conf, atoms.get_positions())
 

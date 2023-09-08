@@ -57,41 +57,31 @@ def launch(idx, conf, protocol, cpu, log, temp, ensemble, try_num: int = 1) -> N
     log.info(
         f"{idx}. Running {ordinal(int(protocol.number))} PROTOCOL -> CONF{conf.number}"
     )
-    try:
-        st = time.perf_counter()
+    st = time.perf_counter()
 
 
-        if protocol.opt: 
-            atoms, label = optimize(conf, protocol, cpu=cpu, log=log)
+    if protocol.opt: 
+        atoms, label = optimize(conf, protocol, cpu=cpu, log=log)
 
-        if protocol.freq:
-            atoms, label = calc_freq(conf, protocol, cpu=cpu, log=log)
+    if protocol.freq:
+        atoms, label = calc_freq(conf, protocol, cpu=cpu, log=log)
 
-        if not (protocol.opt or protocol.freq):
-            atoms, label = single_point(conf, protocol, cpu=cpu, log=log)
+    if not (protocol.opt or protocol.freq):
+        atoms, label = single_point(conf, protocol, cpu=cpu, log=log)
 
-        # try:
-        #     atm.get_potential_energy()
-        # except ase.calculators.calculator.PropertyNotImplementedError:
-        #     pass
+    # try:
+    #     atm.get_potential_energy()
+    # except ase.calculators.calculator.PropertyNotImplementedError:
+    #     pass
 
-        end = time.perf_counter()
+    end = time.perf_counter()
 
-        os.rename(f"{label}.out", f"{conf.folder}/protocol_{protocol.number}.out")
-        if protocol.freq:
-            os.rename(f"{label}.hess", f"{conf.folder}/protocol_{protocol.number}.hess")
-        os.remove(f"{label}.gbw")
+    os.rename(f"{label}.out", f"{conf.folder}/protocol_{protocol.number}.out")
+    if protocol.freq:
+        os.rename(f"{label}.hess", f"{conf.folder}/protocol_{protocol.number}.hess")
+    os.remove(f"{label}.gbw")
 
-    except ase.calculators.calculator.CalculationFailed:
-        with open(f"{label}.out") as f:
-            fl = f.read()
-        log.error("\n".join(fl.splitlines()[-6:-3]))
-        log.critical(
-            f"\n{'='*20}\nCRITICAL ERROR\n{'='*20}\nSome sort of error have been encountered during the calculation of the calculator.\n{'='*20}\nExiting\n{'='*20}\n"
-        )
-        raise RuntimeError(
-            "Some sort of error have been encountered during the calculation of the calculator."
-        )
+        
 
     if not get_conf_parameters(conf, protocol.number, protocol, end - st, temp, log):
         if try_num <= MAX_TRY:
