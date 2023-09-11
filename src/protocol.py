@@ -188,7 +188,7 @@ class Protocol:
         else:
             solv = ""
 
-        si = f'{self.functional} {self.basis} {solv} nopop'
+        si = f'{self.functional} {self.basis} {solv} engrad nopop'
 
         smd = ""
         if self.solvent and "xtb" not in self.functional.lower():
@@ -217,7 +217,6 @@ class Protocol:
     
     def orca_opt(self, cpu: int, charge: int, mult: int):
         calculator, label = self.calc_orca_std(cpu, charge, mult)
-        calculator.parameters["orcasimpleinput"] += " engrad"
 
         return calculator, label
     
