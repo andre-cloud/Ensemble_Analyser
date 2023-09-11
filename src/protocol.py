@@ -69,7 +69,7 @@ class Protocol:
         thrGMAX: float = None,
         constrains: list = [],
         maxstep : float = 0.2,
-        fmax : float = 0.01, 
+        fmax : float = 0.05, 
     ):
         self.number = number
         self.functional = functional.upper()
@@ -85,7 +85,7 @@ class Protocol:
         self.calculator = calculator
         self.constrains = constrains
         self.maxstep = maxstep
-        self.fmax = fmax
+        self.fmax = fmax if not self.constrains else 0.1 # if an opt freeze, the max force convergence will be lifted. 
 
         self.freq_fact = freq_fact
         self.graph = graph
