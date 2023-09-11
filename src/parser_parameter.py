@@ -74,6 +74,8 @@ def get_opt_geometry(fl: str, calc: str, log) -> np.ndarray:
 
     return geom
 
+def tranform_float(freq):
+    return f"{freq:.2f}"
 
 def get_conf_parameters(conf, number: int, p, time, temp: float, log) -> bool:
     """
@@ -111,7 +113,7 @@ def get_conf_parameters(conf, number: int, p, time, temp: float, log) -> bool:
     if p.freq:
         freq = get_freq(fl, p.calculator) * p.freq_fact
         log.info(
-            f"{conf.number} has {freq[freq<0].size} imaginary frequency(s): {', '.join(list(freq[freq<0]))}"
+            f"{conf.number} has {freq[freq<0].size} imaginary frequency(s): {', '.join(list(map(tranform_float, freq[freq<0])))}"
         )
         if freq.size == 0:
             log.error(("\n".join(fl[-6:])).strip())

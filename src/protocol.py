@@ -85,7 +85,13 @@ class Protocol:
         self.calculator = calculator
         self.constrains = constrains
         self.maxstep = maxstep
-        self.fmax = fmax if not self.constrains else 0.1 # if an opt freeze, the max force convergence will be lifted. 
+
+        if fmax != 0.05:
+            self.fmax = fmax 
+        elif self.constrains:
+            self.fmax = 0.1 
+        else: # if an opt freeze, the max force convergence will be lifted. 
+            self.fmax = fmax 
 
         self.freq_fact = freq_fact
         self.graph = graph
