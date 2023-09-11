@@ -121,7 +121,7 @@ class Conformer:
     def _last_energy(self):
         if self.energies:
             return self.energies[list(self.energies.keys())[-1]]
-        return {"E": 0}
+        return {"E": 0, "G": None}
 
     def write_xyz(self):
         if not self.active:
