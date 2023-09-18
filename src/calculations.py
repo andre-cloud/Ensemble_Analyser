@@ -1,7 +1,7 @@
 import ase, os, re
 from ase import Atoms
 from ase.constraints import FixAtoms
-from ase.optimize import BFGS
+from ase.optimize import LBFGS
 from ase.vibrations import Vibrations, Infrared
 
 from src.IOsystem import tail
@@ -29,7 +29,7 @@ def optimize(conf, protocol, cpu : int, log, try_ = 0):
         c = FixAtoms(indices=list(protocol.constrains))
         atoms.set_constraint(c)
     
-    opt = BFGS(atoms, maxstep=protocol.maxstep, logfile=f"opt_p{protocol.number}_{conf.number}.log", trajectory=f"p{protocol.number}_{label}.trj")
+    opt = LBFGS(atoms, maxstep=protocol.maxstep, logfile=f"opt_p{protocol.number}_{conf.number}.log", trajectory=f"p{protocol.number}_{label}.trj")
     opt.run(protocol.fmax, steps=1000)
 
     if not check_output(label, protocol.calculator):

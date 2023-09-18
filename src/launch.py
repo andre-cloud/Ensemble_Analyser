@@ -134,10 +134,8 @@ def run_protocol(conformers, p, temperature, cpu, log) -> None:
 
     conformers = sorted(conformers)
 
-    calculate_rel_energies(conformers, temperature)
 
     log.info("\nEnded Calculations\n")
-    create_summary("Summary", conformers, log)
     log.info(
         "\nTotal elapsed time: "
         + str(
@@ -155,8 +153,10 @@ def run_protocol(conformers, p, temperature, cpu, log) -> None:
         log,
     )
 
-    log.debug("Start Pruning")
+    create_summary("Summary", conformers, log)
     conformers = check_ensemble(conformers, p, log)
+    log.debug("Start Pruning")
+    calculate_rel_energies(conformers, temperature)
     save_snapshot(f"ensemble_after_{p.number}.xyz", conformers, log)
 
     perform_PCA(
@@ -167,6 +167,7 @@ def run_protocol(conformers, p, temperature, cpu, log) -> None:
         log,
     )
 
+    calculate_rel_energies(conformers, temperature)
     create_summary("Summary After Pruning", conformers, log)
 
     log.info(f'{"="*15}\nEND PROTOCOL {p.number}\n{"="*15}\n\n')
@@ -270,12 +271,12 @@ def start_calculation(
                 invert=invert,
             )
 
-    save_snapshot("final_ensemble.xyz", conformers, log)
-    log.info(f'{"="*15}\nCALCULATIONS ENDED\n{"="*15}\n\n')
 
     # sort the final ensemble
     c_ = sorted(conformers)
     calculate_rel_energies(c_, temperature)
+    save_snapshot("final_ensemble.xyz", c_, log)
+    log.info(f'{"="*15}\nCALCULATIONS ENDED\n{"="*15}\n\n')
     create_summary("Final Summary", c_, log)
 
     return None
