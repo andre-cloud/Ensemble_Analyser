@@ -112,7 +112,7 @@ class Conformer:
 
     @property
     def get_energy(self):
-        en = self._last_energy()
+        en = self._last_energy
         if en["G"]:
             return en["G"]
         return en["E"]
