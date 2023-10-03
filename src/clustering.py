@@ -93,6 +93,14 @@ def save_PCA_snapshot(
     ax.set_ylabel("Principal Component 2")
     ax.set_title(title)
 
+    y = ax.get_ylim()
+    x = ax.get_xlim()
+
+    ax.vlines(0, y[0], y[1], "#353535", '--', alpha=0.2)
+    ax.hlines(0, x[0], x[1], "#353535", '--', alpha=0.2)
+
+    ax.set_xlim(x)
+    ax.set_ylim(y)
     plt.legend(
         loc='upper left', bbox_to_anchor=(1.05, 1.),
           fancybox=True, shadow=True, ncol=2, title="Conformers"
