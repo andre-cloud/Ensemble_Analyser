@@ -12,52 +12,6 @@ from ase.atoms import Atoms
 class Conformer:
     """
     Storing all the information on each conformer for all the parts of the protocol
-
-    Attributes
-    ----------
-    number : int
-        index of the conformer
-    _initial_geometry : list
-        Initial geometry of the conformer (only XYZ of each atom)
-    charge : int
-        Charge of the molecule
-    mult : int
-        Spin multiplicity of the molecule
-    last_geometry : lit
-        Last parsed geometry of the conformer (only XYZ of each atom)
-    atoms : list
-        List of the atoms
-    energies : dict
-        JSON dictionary to keep track of all the calculated energies and some other parameters (dipole and B)
-    active : bool
-        Keep track if the conformer is still part of the ensemble
-    folder : str
-        Name of the folder to keep the outputs of the conformer's calculation
-    weight_mass : float
-        MW of the molecule
-    rotary : list
-        3D vector for the rotary constant
-    momentum : list
-        3D vector for the dipole moment
-    get_energy : float
-        Get the last available energy, preferring G; if not possible, E is returned
-    _last_energy : dict
-        Last element added in energies attribute
-
-    Methods
-    -------
-    get_ase_atoms(calc=None)
-        Returns the atoms as ase.Atom in a list
-
-    write_xyz()
-        Returns the XYZ-file string
-
-    create_log()
-        Returns the string necessary to output the information
-
-    @staticmethod load_raw()
-        Load a conformer info from a JSON entry
-
     """
 
     def __init__(
@@ -87,6 +41,13 @@ class Conformer:
             mkdir(self.folder)
 
     def get_ase_atoms(self, calc=None):
+        """Return the atoms needed for the calculation
+        
+        :param calc: the type of calculator to use
+        :type calc: ase.calculator
+        :return: the ase instance ready to start the calculation
+        :rtype: ase.Atoms
+        """
         return Atoms(
             symbols="".join(list(self.atoms)),
             positions=self.last_geometry,
@@ -124,6 +85,11 @@ class Conformer:
         return {"E": 0, "G": None}
 
     def write_xyz(self):
+        """Write the XYZ string to be stored in a file
+        
+        :return: the string in the XYZ formatting
+        :rtype: str
+        """
         if not self.active:
             return ""
         txt = f'{len(self.atoms)}\nCONFORMER {self.number} {"G : {:.6f} kcal/mol".format(self._last_energy["G"]) if self._last_energy["G"] else "E : {:.6f} kcal/mol".format(self._last_energy["E"])}\n'
@@ -133,6 +99,11 @@ class Conformer:
         return txt.strip()
 
     def create_log(self):
+        """Generate all the information needed for the tabulation
+        
+        :return: a long tuple with all the information. (Number, E, G, B, Erel, Pop, Elapsed Time)
+        :rtype: tuple
+        """
         en = self._last_energy
         number, e, g, b, erel, time, pop = (
             self.number,
@@ -149,6 +120,13 @@ class Conformer:
 
     @staticmethod
     def load_raw(json):
+        """Load raw configuration. Restart purposes.
+        
+        :param json: All the information of the conformer
+        :type json: dict
+        :return: the conformer instance
+        :rtype: Conformer
+        """
         a = Conformer(
             number=json["number"],
             geom=json["last_geometry"],

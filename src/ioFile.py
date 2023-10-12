@@ -15,9 +15,11 @@ def convert_file(file) -> str:
     Convert the input file into xyz multigeometry XYZ file.
     OPENBABEL is required
 
-    file | str : input filename
+    :param file: input filename
+    :type file: str
 
-    return | str : input converted filename
+    :return: input converted filename
+    :rtype: str
     """
     output = "_".join(file.split(".")[:-1]) + ".xyz"
     os.system(f"obabel {file} -O{output}")
@@ -29,12 +31,17 @@ def read_ensemble(file, charge, multiplicity, log) -> list:
     Read the initial ensemble and return the ensemble list
     Not only XYZ file is supported. OBABEL is required
 
-    file | str : initial ensemble file
-    charge | int : charge of the molecule
-    multiplicity | int : multiplicity of the molecule
-    log : logger instance
+    :param file: initial ensemble file
+    :type file: str
+    :param charge: charge of the molecule
+    :type charge: int
+    :param multiplicity: multiplicity of the molecule
+    :type multiplicity: int
+    :param log: logger instance
+    :type log: logger
 
-    return | list : whole ensemble list as Conformer instances
+    :return: whole ensemble list as Conformer instances
+    :rtype: list
     """
 
     confs = []
@@ -62,6 +69,17 @@ def read_ensemble(file, charge, multiplicity, log) -> list:
 
 
 def save_snapshot(output, confs, log):
+    """
+    Save an XYZ file to store a bunch of geometries
+
+    :param output: output filename 
+    :type output: str
+    :param confs: list of all active conformers
+    :type confs: list(Conformer)
+    :param log: logger instance
+    :type log: logger
+    :return: None
+    """
     log.debug("Saving snapshot of the ensemble")
     with open(output, "w") as f:
         f.write("\n".join([f"{i.write_xyz().strip()}" for i in confs]).strip())

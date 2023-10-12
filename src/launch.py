@@ -43,15 +43,22 @@ def launch(idx, conf, protocol, cpu, log, temp, ensemble, try_num: int = 1) -> N
     """
     Run the calculation for each conformer
 
-    idx | int : index of the calculation
-    conf | Conformer : conformer instance
-    protocol | Protocol : protocol instance
-    cpu | int : number of cpu to allocate
-    log : logger instance
-    temp | float : temperature [K]
-    ensemble | list : whole ensemble list
+    :param idx: index of the calculation
+    :type idx: int
+    :param conf: conformer instance
+    :type conf: Conformer
+    :param protocol: protocol instance
+    :type protocol: Protocol
+    :param cpu: number of cpu to allocate
+    :type cpu: int
+    :param log: instance
+    :type log: logger
+    :param temp: temperature [K]
+    :type temp: float
+    :param ensemble: whole ensemble list
+    :type ensemble: list
 
-    return None
+    :return: None
     """
 
     log.info(
@@ -110,13 +117,18 @@ def run_protocol(conformers, p, temperature, cpu, log) -> None:
     """
     Run the protocol for each conformer
 
-    conformers | list : whole ensemble list
-    p | Protocol : protocol information
-    temperature | float : temperature [K]
-    cpu | int : cpu to allocate
-    log : logger instance
+    :param conformers: whole ensemble list
+    :type conformers: list
+    :param p: protocol information
+    :type p: Protocol
+    :param temperature: temperature [K]
+    :type temperature: float
+    :param cpu: cpu to allocate
+    :type cpu: int
+    :param log: logger instance
+    :type log: logger
 
-    return None
+    :return: None
     """
 
     log.info(f"STARTING PROTOCOL {p.number}")
@@ -179,10 +191,13 @@ def last_protocol_completed(conf, idx: int) -> bool:
     """
     Getting if all the conformers have been calculated until the idx-th protocol
 
-    conf | list : whole ensemble list
-    idx | int : index of the last protocol executed
+    :param conf: whole ensemble list
+    :type conf: conf
+    :param idx: index of the last protocol executed
+    :type idx: idx
 
-    return | bool
+    :return: return if the protocol selected is completed
+    :rtype: bool
     """
 
     tmp = []
@@ -197,9 +212,14 @@ def create_summary(title, conformers, log):
     """
     Create the summary of a ensemble information
 
-    title | str : title of the summary
-    conformers | list : whole ensemble list
-    log : logger instance
+    :param title: title of the summary
+    :type title: str
+    :param conformers: whole ensemble list
+    :type conformers: list
+    :param log: logger instance
+    :type log: logger
+
+    :return: None
     """
 
     log.info(title)
@@ -240,14 +260,20 @@ def start_calculation(
     """
     Main calculation loop
 
-    conformers | list : whole ensemble list
-    protocol | list : whole protocol steps
-    cpu | int : cpu allocated
-    temperature | float : temperature [K]
-    start_from | int : index of the last protocol executed
-    log : logger instance
+    :param conformers: whole ensemble list
+    :type conformers: list
+    :param protocol: whole protocol steps
+    :type protocol: list
+    :param cpu: cpu allocated
+    :type cpu: int
+    :param temperature: temperature [K]
+    :type temperature: float
+    :param start_from: index of the last protocol executed
+    :type start_from: int
+    :param log: logger instance
+    :type log: logger
 
-    return None
+    :return: None
     """
     if start_from != 0:
         if last_protocol_completed(conformers, start_from):
@@ -286,7 +312,8 @@ def restart() -> tuple:
     """
     Reload ensemble, protocol and setting from previous calculation
 
-    return | list, list, int
+    :return: the ensemble list, the protocol list and the last completed protocol
+    :rtype: list, list, int
     """
     confs = json.load(open("checkpoint.json"))
     ensemble = [Conformer.load_raw(confs[i]) for i in confs]
@@ -304,11 +331,15 @@ def create_protocol(p, log) -> list:
     """
     Create the steps for the protocol to be executed
 
-    p | dict : JSON read file of the protocol
-    thrs | dict : JSON read file of the thresholds
-    log : logger instance
+    :param p: JSON read file of the protocol
+    :type p: dict
+    :param thrs: JSON read file of the thresholds
+    :type thrs: dict
+    :param log: logger instance
+    :type log: logger
 
-    return | list : protocol steps
+    :return: protocol steps
+    :rtype: list
     """
 
     protocol = []
@@ -340,18 +371,27 @@ def create_protocol(p, log) -> list:
     return protocol
 
 
-def check_protocol(log, func, graph, add_input, idx, last_prot_with_freq) -> None:
+def check_protocol(log, func, graph, add_input, idx, last_prot_with_freq=None) -> None:
     """
     Sanity check of the input settings
 
-    log ! logger
-    func | str : the functional name
-    graph | bool : calculate the TD-DFT graphs
-    add_input | str : additional input to put in the input of the calculation
-    idx | int : index of the protocol
-    last_prot_with_freq | None, int : last index with frequency calculation
+    :param log: logger instance
+    :type log: logger
+    :param func: the functional name
+    :type func: str
+    :param graph: calculate the TD-DFT graphs
+    :type graph: bool
+    :param add_input: additional input to put in the input of the calculation
+    :type add_input: str
+    :param idx: index of the protocol
+    :type idx: int
+    :param last_prot_with_freq: last index with frequency calculation, default is None
+    :type last_prot_with_freq: int, optional
 
-    return None
+    :return: None
+
+    :raise IOError: 
+        There is an error in the input file with the definition of the functional. See the output file.
     """
 
     if not func:
@@ -390,6 +430,7 @@ def main():
     if os.path.exists(os.path.join(os.getcwd(), "settings.json")):
         settings = json.load(open("settings.json"))
     else:
+        print(args.output)
         settings = {
             "output": args.output,
             "cpu": args.cpu,
@@ -418,6 +459,7 @@ def main():
     invert = settings.get("invert", False)
 
     # initiate the log
+    print(output)
     log = create_log(output)
     # deactivate the log of matplotlib
     logging.getLogger("matplotlib").disabled = False

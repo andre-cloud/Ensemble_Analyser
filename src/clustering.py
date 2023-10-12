@@ -16,8 +16,11 @@ def get_best_ncluster(coords):
     """
     Obtain the best number of cluster based on the maximization of the silhouette
 
-    coords | 2D-array : array of the coordinates of each atom
-    return | int : best number of clusters
+    :param coords: array of the coordinates of each atom
+    :type coords: 2D-array
+
+    :return: best number of clusters
+    :rtype: int 
     """
 
     k_range = range(10, 30)
@@ -35,9 +38,12 @@ def calc_pca(confs: list, ncluster: Union[int, None] = None) -> tuple:
     Function that execute the actual PCA analysis. 
     It wants to understand how conformations differ from each other based on their overall Cartesian coordinates
 
-    confs | list : whole list of the confomers
-    ncluster | int : number of cluster to form using the KMean analysis
-    return tuple(np.array, np.array) : PCA transformation, Clustered coordinates
+    :param confs: whole list of the confomers
+    :type confs: list 
+    :param ncluster: number of cluster to form using the KMean analysis
+    :type ncluster: int 
+    :return: PCA transformation, Clustered coordinates
+    :rtype: tuple
     """
 
     # fetch all geometries and reshaping them to create the correct 2D matrix
@@ -69,20 +75,31 @@ def calc_pca(confs: list, ncluster: Union[int, None] = None) -> tuple:
 
 
 def obtain_markers_from_cluster(cluster: int):
+    """
+    Obtain a different marker from the marker library for different conformers
+
+    :param cluster: the cluster number
+    :return: marker
+    :rtype: matplotlib.lines
+    """
     return MARKERS[cluster]
 
 
 def save_PCA_snapshot(
     fname: str, title: str, pca_scores: np.ndarray, clusters: np.ndarray, colors : list, numbers : list
-) -> None:
+):
     """
     Graph and save the image of the PCA analysis
 
-    fname | str : filename to save the graphs
-    title | str : title of the graph
-    pca_scores | np.array : PCA transformation
-    clusters | np.array : Clustered coordinates
-    return None
+    :param fname: filename to save the graphs
+    :type fname: str
+    :param title: title of the graph
+    :type title: str
+    :param pca_scores: PCA transformation
+    :type pca_scores: np.array
+    :param clusters: Clustered coordinates
+    :type clusters: np.array
+    :rtype: None
     """
 
     fig, ax = plt.subplots()
@@ -111,6 +128,21 @@ def save_PCA_snapshot(
 
 
 def perform_PCA(confs: list, ncluster: int, fname: str, title: str, log) -> None:
+    """
+    Perform a PCA analysis
+
+    :param confs:  list of all the active conformers
+    :type confs: list
+    :param ncluster:  number of cluster to group the ensemble
+    :type ncluster: int
+    :param fname:  filename for the graph
+    :type fname: str
+    :param title:  title of the graph
+    :type title: str
+    :param log:  logger instance
+    :type log: logging
+    :rtype: None
+    """
     log.info("Starting PCA analysis")
     nc = ncluster if len(confs) > ncluster else len(confs) - 1
     if nc <= 2:

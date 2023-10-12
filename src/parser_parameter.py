@@ -15,7 +15,18 @@ EH_TO_KCAL = 627.5096080305927
 
 def get_param(x, calculator, param):
     """
-    Parsing for Rotational Constant
+    Parsing for Rotational Constant. Thought for a map function
+
+    :param x: line of the output
+    :type x: str
+    :param calculator: name of the calculator used
+    :type calculator: str
+    :param param: the parameter to be parsed
+    :type param: str
+
+    :return: line
+    :rtype: str
+
     """
     if re.search(regex_parsing[calculator][param], x):
         return x
@@ -25,9 +36,13 @@ def get_freq(fl: str, calc: str) -> np.ndarray:
     """
     Parsing for frequencies
 
-    fl | str : piece of log file
-    calc | str : calculator type
-    return | np.array : frequency [cm-1]
+    :param fl: piece of log file
+    :type fl: str
+    :param calc: calculator type
+    :type calc: str
+    
+    :return: frequency [cm-1]
+    :rtype: np.array
     """
 
     fl = (
@@ -52,8 +67,17 @@ def get_freq(fl: str, calc: str) -> np.ndarray:
 
 
 def get_opt_geometry(fl: str, calc: str, log) -> np.ndarray:
-    """
-    Fetch the geometry from the calculator output
+    """Fetch the geometry from the calculator output
+
+    :param fl: file read
+    :type fl: str
+    :param calc: calculator used
+    :type calc: str
+    :param log: logger instance
+    :type log: logger
+    
+    :return: the geometry (XYZ) for each atom
+    :rtype: np.ndarray
     """
 
     opt_done = regex_parsing[calc]["opt_done"] in fl
@@ -75,20 +99,35 @@ def get_opt_geometry(fl: str, calc: str, log) -> np.ndarray:
     return geom
 
 def tranform_float(freq):
+    """Transform into a float number a string. Thought for a map function
+
+    :param freq: frequency to be transformed
+    :type freq: float
+    
+    :return: frequency transformed
+    :rtype: str
+    """
     return f"{freq:.2f}"
 
 def get_conf_parameters(conf, number: int, p, time, temp: float, log) -> bool:
     """
     Obtain the parameters for a conformer: E, G, B, m
 
-    conf | Conformer : conformer
-    number | int : protocol number
-    p | Protocol : protocol executed
-    time | datetime : elapsed time requested for the calculation
-    temp | float : temperature [K]
-    log : logger instance
+    :param conf: conformer
+    :type conf: Conformer
+    :param number: protocol number
+    :type number: int
+    :param p: protocol executed
+    :type p: Protocol
+    :param time: elapsed time requested for the calculation
+    :type time: datetime
+    :param temp: temperature [K]
+    :type temp: float
+    :param log: logger instance
+    :type log: logger
 
-    return | bool : calculation ended correctly and not crashed due to server error
+    :return: calculation ended correctly and not crashed due to server error
+    :rtype: bool
     """
     
     with open(os.path.join(conf.folder, f"protocol_{number}.out")) as f:

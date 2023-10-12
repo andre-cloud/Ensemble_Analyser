@@ -1,16 +1,17 @@
 import numpy as np
-import shutil
-import json, subprocess
+import json
 import os
 
 
-def _parse_xyz_str(fl: str) -> tuple:
+def _parse_xyz_str(fl: str):
     """
     Parse an xyz geom descriptor
 
-    fl | str : string of the file splitted in a single geometry
+    :param fl: string of the file splitted in a single geometry
+    :type fl: str
 
-    return | tuple : list of atoms, XYZ position of the atoms
+    :return: list of atoms, XYZ position of the atoms
+    :rtype: tuple 
     """
     fl = fl[2:]
     atoms, geom = [], []
@@ -21,13 +22,14 @@ def _parse_xyz_str(fl: str) -> tuple:
     return np.array(atoms), np.array(geom, dtype=float)
 
 
-def mkdir(directory: str) -> None:
+def mkdir(directory: str):
     """
     Create a directory, raising an error if the directory already exists
 
-    directory | str : directory name
+    :param directory: directory name
+    :type directory: str
 
-    return None
+    :return: None
     """
     if os.path.exists(directory):
         raise IOError(f"Directory {directory} already exists. Going to exit!")
@@ -45,6 +47,15 @@ class SerialiseEncoder(json.JSONEncoder):
 
 
 def tail(file_path, num_lines):
+    """Tail an output file
+
+    :param file_path: output filename path
+    :type file_path: str
+    :param num_lines: number of lines to print
+    :type num_lines: int
+    :return: the tail of the file
+    :rtype: str
+    """
     with open(file_path) as f:
         fl = f.readlines()
 

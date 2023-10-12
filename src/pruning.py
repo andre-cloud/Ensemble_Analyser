@@ -17,11 +17,15 @@ def cut_over_thr_max(confs: list, thrGMAX: float, log) -> None:
     """
     Get conformers over the threshold of the amx energy
 
-    confs | list : whole ensemble list
-    thrGMAX | float : maximum relative energy
-    log : logger instance
+    :param confs: whole ensemble list
+    :type confs: list
+    :param thrGMAX: maximum relative energy
+    :type thrGMAX: float
+    :param log: logger instance
+    :type log: logger
 
-    return | list : updated ensemble
+    :return: updated ensemble
+    :rtype: list
     """
 
     ens = np.array([(i, i.get_energy) for i in confs if i.active])
@@ -38,15 +42,19 @@ def cut_over_thr_max(confs: list, thrGMAX: float, log) -> None:
 
 
 def rmsd(check, ref) -> float:
-    """
-    Compute the Root Mean Squared Root of two geometries
+    r"""
+    Compute the Root Mean Squared Deviation (**RMSD**) of two geometries
 
-    RMSD = sqrt(1/N)*||v_i - w_i||
+    .. math::
+        RMSD = \sqrt{ \frac {1}{N} ||v_{i} - w_{i}|| }
+    
+    :param check: conformer to be compared
+    :type check: Conformer
+    :param ref: reference
+    :type ref: Conformer
 
-    check | Conformer : conformer to be compared
-    ref | Conformer : reference
-
-    return | float : RMSD
+    :return: RMSD
+    :rtype: float
     """
     ref_pos, check_pos = ref.copy(), check.copy()
     minimize_rotation_and_translation(ref_pos, check_pos)
@@ -59,7 +67,7 @@ def dict_compare(check, conf_ref, deactivate=True) -> dict:  # pragma: no cover
     """
     Create a default dictionary for the comparison
 
-    return | dict
+    :rtype: dict
     """
     return {
         "Check": check.number,
@@ -75,15 +83,21 @@ def dict_compare(check, conf_ref, deactivate=True) -> dict:  # pragma: no cover
 def check(check, conf_ref, protocol, controller: dict) -> bool:
     """
     Control conformer against a reference. Both the following asserts MUST be matched to deactivate the conformer:
-    1. B_check - B_reference < thrB
-    2. G_check - G_reference < thrG
 
-    check | Conformer : conformer to be compared
-    conf_ref | Conformer : reference
-    protocol | Protocol : protocol in order to gain the thresholds
-    controller | dict : tracker of the deactivated conformers
+    * :math:`B_{check} - B_{reference} < thrB`
+    * :math:`G_{check} - G_{reference} < thrG`
 
-    return | bool : true if conf have been deactivated.
+    :param check: conformer to be compared
+    :type check: Conformer
+    :param conf_ref: reference
+    :type conf_ref: Conformer
+    :param protocol: protocol in order to gain the thresholds
+    :type protocol: Protocol
+    :param controller: tracker of the deactivated conformers
+    :type controller: dict
+
+    :return: true if conf have been deactivated.
+    :rtype: bool
     """
 
     if not conf_ref.active:
@@ -110,11 +124,14 @@ def check(check, conf_ref, protocol, controller: dict) -> bool:
 def refactor_dict(controller: dict) -> dict:
     """
     Refactor dictionaries in order to print the correct table
-    {'1': {a: 1, b: 2}, '2' : {a: 3, b: 4}} -> {a : {'1': 1, '2': 3}, b : {'1': 2, '2': 4}}
 
-    controller | dict : dictionary to refactor
+    ``{'1': {a: 1, b: 2}, '2' : {a: 3, b: 4}} -> {a : {'1': 1, '2': 3}, b : {'1': 2, '2': 4}}``
 
-    return | dict : refactored dictionary
+    :param controller: dictionary to refactor
+    :type controller: dict
+
+    :return: refactored dictionary
+    :rtype: dict
     """
 
     if not controller:
@@ -131,15 +148,20 @@ def refactor_dict(controller: dict) -> dict:
 
 def check_ensemble(confs: list, protocol, log) -> list:
     """
-    Check the ensemble
+    Check the ensemble:
+
     1. Over energy threshold
     2. Assert if duplicate conformers with energy and B comparison
 
-    confs | list : whole ensemble list
-    protocol | Protocol : protocol instance
-    log : logger instance
+    :param confs: whole ensemble list
+    :type confs: list
+    :param protocol: protocol instance
+    :type protocol: Protocol
+    :param log: logger instance
+    :type log: logger
 
-    return | list : ensemble pruned with conformers deactivated
+    :return: ensemble pruned with conformers deactivated
+    :rtype: list
     """
 
     if protocol.graph:
@@ -175,10 +197,12 @@ def calculate_rel_energies(conformers: list, T: float) -> None:
     """
     Relative energy
 
-    conformers | list : whole ensemble list
-    T | float : temperature [K]
+    :param conformers: whole ensemble list
+    :type conformers: list
+    :param T: temperature [K]
+    :type T: float
 
-    return None
+    :return: None
     """
 
     c = [i for i in conformers if i.active]

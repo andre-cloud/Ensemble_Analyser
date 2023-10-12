@@ -14,9 +14,11 @@ def create_log(output):
     """
     Creating an logger instance.
 
-    output | str : output filename
+    :param output: output filename
+    :type output: str 
 
-    return : logger instance
+    :return: logger instance
+    :rtype: logging
     """
 
     logging.basicConfig(
@@ -27,8 +29,6 @@ def create_log(output):
     )
 
     log = logging.getLogger()
-    # sys.stdout = StreamToLogger(log,logging.INFO)
-    # sys.stderr = StreamToLogger(log,logging.ERROR)
 
     log.warning(f"DEBUG mode: {DEBUG}")
 

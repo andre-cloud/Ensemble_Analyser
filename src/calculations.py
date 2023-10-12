@@ -11,6 +11,17 @@ from src.parser_parameter import get_opt_geometry
 MAX_TRY = 5
 
 def check_output(label, calc):
+    """
+    Check the output file
+
+    :param label: label of the output
+    :type label: str
+    :param calc: name of the calculator
+    :type calc: str
+    :return: True if calculation is correctly finished
+    :rtype: bool 
+    """
+
     file = f"{label}.{regex_parsing[calc]['ext']}"
     if os.path.exists(file):
         return regex_parsing[calc]['finish'] in tail(file, 5)
@@ -18,7 +29,24 @@ def check_output(label, calc):
     return False
     
 
-def optimize(conf, protocol, cpu : int, log, try_ = 0):
+def optimize(conf, protocol, cpu : int, log, attempts = 0):
+    """
+    Run an optimization calculation
+
+    :param conf: the conformer instance to optimize
+    :type conf: Conformer 
+    :param protocol: protocol instance to run
+    :type protocol: Protocol 
+    :param cpu: number of cpu to run the optimization on
+    :type cpu: int 
+    :param log: logger instance
+    :type log: logging
+    :param attempts: number of try of the calculation
+    :type attempts: int 
+    :return: ase.atoms, label
+    :rtype: tuple 
+    """
+
     calc, label = protocol.get_calculator(
             cpu=cpu, charge=conf.charge, mult=conf.mult, mode="opt"
         )
@@ -33,8 +61,8 @@ def optimize(conf, protocol, cpu : int, log, try_ = 0):
     opt.run(protocol.fmax, steps=1000)
 
     if not check_output(label, protocol.calculator):
-        if try_ < MAX_TRY:
-            optimize(conf, protocol, cpu, log, try_+1)
+        if attempts < MAX_TRY:
+            optimize(conf, protocol, cpu, log, attempts+1)
         else:
             with open(f"{label}.{regex_parsing[calc]['ext']}") as f:
                 fl = f.read()
@@ -54,7 +82,24 @@ def optimize(conf, protocol, cpu : int, log, try_ = 0):
 
     return atoms, label
 
-def calc_freq(conf, protocol, cpu : int, log, try_ = 0):
+def calc_freq(conf, protocol, cpu : int, log, attempts = 0):
+    """
+    Run an hessian calculation
+
+    :param conf: the conformer instance to optimize
+    :type conf: Conformer 
+    :param protocol: protocol instance to run
+    :type protocol: Protocol 
+    :param cpu: number of cpu to run the optimization on
+    :type cpu: int 
+    :param log: logger instance
+    :type log: logging
+    :param attempts: number of try of the calculation
+    :type attempts: int 
+    :return: ase.atoms, label
+    :rtype: tuple 
+    """
+    
     calc, label = protocol.get_calculator(
             cpu=cpu, charge=conf.charge, mult=conf.mult, mode="freq"
         )
@@ -69,8 +114,24 @@ def calc_freq(conf, protocol, cpu : int, log, try_ = 0):
 
     return atoms, label
 
-def single_point(conf, protocol, cpu : int, log, try_=0):
+def single_point(conf, protocol, cpu : int, log, attempts=0):
+    """
+    Run a single point calculation
 
+    :param conf: the conformer instance to optimize
+    :type conf: Conformer 
+    :param protocol: protocol instance to run
+    :type protocol: Protocol 
+    :param cpu: number of cpu to run the optimization on
+    :type cpu: int 
+    :param log: logger instance
+    :type log: logging
+    :param attempts: number of try of the calculation
+    :type attempts: int 
+    :return: ase.atoms, label
+    :rtype: tuple 
+
+    """
 
     calc, label = protocol.get_calculator(
             cpu=cpu, charge=conf.charge, mult=conf.mult, mode="energy"
@@ -93,6 +154,16 @@ def single_point(conf, protocol, cpu : int, log, try_=0):
 
 
 def set_last_geometry(conf, geometry):
+    """
+    Set the last geometry calculated
 
+    :param conf: the conformer instance to optimize
+    :type conf: Conformer
+    :param geometry: XYZ geometry
+    :type geometry: 2D array
+    
+    :rtype: None
+
+    """
     conf.last_geometry = geometry[:]
     return None

@@ -46,6 +46,11 @@ class Solvent:
             return "CPCM"
         
     def orca_input_smd(self):
+        """Get the ORCA input string for the SMD
+
+        :return: SMD input for ORCA
+        :rtype: str
+        """
         if self.smd:
             return f'%cpcm smd true smdsolvent "{self.solvent}" end'
         return ""
@@ -123,7 +128,8 @@ class Protocol:
         """
         Load default thresholds
 
-        return | dict : thresholds
+        :return: thresholds
+        :rtype: dict
         """
 
         default = os.path.join(
@@ -137,10 +143,14 @@ class Protocol:
         """
         Get the calculator from the user selector
 
-        cpu | int : allocated CPU
-        charge | int : charge of the molecule
-        mult | int : multiplicity of the molecule
-        mode | str {opt, freq, energy}: type of calculation required
+        :param cpu: allocated CPU
+        :type cpu: int
+        :param charge: charge of the molecule
+        :type charge: int
+        :param mult: multiplicity of the molecule
+        :type mult: int
+        :param mode: type of calculation required. Choose between: opt, freq, energy
+        :type mode: str
         """
 
         calc = {"orca": {
@@ -156,7 +166,8 @@ class Protocol:
         """
         Get default thrs if not defined by user
 
-        thr_json | dict : JSON default thresholds
+        :param thr_json: JSON default thresholds
+        :type thr_json: dict
         """
         c = LEVEL_DEFINITION[self.number_level]
         if not self.thrG:
@@ -184,6 +195,14 @@ class Protocol:
     # ORCA CALCULATOR
 
     def orca_common_str(self, cpu):
+        """ORCA common string for the input
+
+        :param cpu: number of CPU
+        :type cpu: int
+        :return: input string
+        :rtype: str
+        """
+
         if self.solvent:
             if "xtb" in self.functional.lower():
                 solv = f"ALPB({self.solvent.solvent})"
@@ -208,6 +227,17 @@ class Protocol:
         return si, ob
 
     def calc_orca_std(self, cpu: int, charge: int, mult: int):
+        """Standard calculator
+
+        :param cpu: CPU number
+        :type cpu: int
+        :param charge: charge of the molecule
+        :type charge: int
+        :param mult: multiplicity of the molecule
+        :type mult: int
+        :return: calculator and label
+        :rtype: tuple
+        """
 
         simple_input, ob = self.orca_common_str(cpu)
         label = "ORCA"
@@ -222,11 +252,33 @@ class Protocol:
         return calculator, label
     
     def orca_opt(self, cpu: int, charge: int, mult: int):
+        """Optimization calculator
+
+        :param cpu: CPU number
+        :type cpu: int
+        :param charge: charge of the molecule
+        :type charge: int
+        :param mult: multiplicity of the molecule
+        :type mult: int
+        :return: calculator and label
+        :rtype: tuple
+        """
         calculator, label = self.calc_orca_std(cpu, charge, mult)
 
         return calculator, label
     
     def orca_freq(self, cpu: int, charge: int, mult: int):
+        """Frequency calculator
+
+        :param cpu: CPU number
+        :type cpu: int
+        :param charge: charge of the molecule
+        :type charge: int
+        :param mult: multiplicity of the molecule
+        :type mult: int
+        :return: calculator and label
+        :rtype: tuple
+        """
         calculator, label = self.calc_orca_std(cpu, charge, mult)
         calculator.parameters["orcasimpleinput"] += " freq"
 
