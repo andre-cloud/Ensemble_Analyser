@@ -137,7 +137,7 @@ This module offers essential functions for managing molecular conformers and per
    :undoc-members:
    :show-inheritance:
 
-Rrho Module
+RRHO Module
 -------------
 
 This module provides various functions for calculating thermodynamic properties of molecular systems, and it's based upon the thermodynamic formalism of `Grimme`_ with the dumping of the frequency value.
