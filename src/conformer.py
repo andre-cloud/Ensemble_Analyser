@@ -34,6 +34,7 @@ class Conformer:
         self.active = True
         self.color = "#%06x" % random.randint(0, 0xFFFFFF)
 
+        self.cluster = None
         # IO
         self.folder = f"conf_{self.number}"
         if not raw:
@@ -136,6 +137,7 @@ class Conformer:
         )
         a.energies = json["energies"]
         a.active = json["active"]
+        a.cluster = json["cluster"]
         return a
 
     def __str__(self) -> str:

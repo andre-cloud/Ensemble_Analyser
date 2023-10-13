@@ -46,9 +46,9 @@ def calc_pca(confs: list, ncluster: Union[int, None] = None) -> tuple:
     """
 
     # fetch all geometries and reshaping them to create the correct 2D matrix
-    data = np.array([atom.last_geometry for atom in confs])
-    colors = [atom.color for atom in confs]
-    numbers = [atom.number for atom in confs]
+    data = np.array([conf.last_geometry for conf in confs])
+    colors = [conf.color for conf in confs]
+    numbers = [conf.number for conf in confs]
     coords_2d = np.reshape(data, (data.shape[0], data.shape[1] * data.shape[2]))
 
     # normalize it to have mean=0 and variance=1
@@ -66,9 +66,15 @@ def calc_pca(confs: list, ncluster: Union[int, None] = None) -> tuple:
     else:
         n_c = ncluster
 
-    # Cluster the data
-    kmeans = KMeans(n_clusters=n_c, n_init=10)
-    clusters = kmeans.fit_predict(pca_scores)
+    # Cluster the data the first time
+    if not confs[0].cluster:
+        kmeans = KMeans(n_clusters=n_c, n_init=10)
+        clusters = kmeans.fit_predict(pca_scores)
+        for idx, conf in enumerate(confs):
+            conf.cluster = clusters[idx]
+    else:
+        clusters = [conf.cluster for conf in confs]
+
     return pca_scores, clusters, colors, numbers
 
 
