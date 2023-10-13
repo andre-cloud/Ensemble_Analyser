@@ -33,7 +33,6 @@ class Graph:
         shift: Union[None, float] = None,
         invert: bool = False,
     ):
-
         self.confs = [i for i in confs if i.active]
         self.protocol = protocol
         self.log = log
@@ -122,7 +121,7 @@ class Graph:
         :type spectra: str
 
         :return: energy and impulse tuple
-        :rtype: tuple(float, float) 
+        :rtype: tuple(float, float)
         """
         graph = spectra.split(regex_parsing[self.protocol.calculator]["s_UV"])[
             -1
@@ -154,7 +153,7 @@ class Graph:
         :type spectra: str
 
         :return: energy and impulse tuple
-        :rtype: tuple(float, float) 
+        :rtype: tuple(float, float)
         """
         graph = spectra.split(regex_parsing[self.protocol.calculator]["s_ECD"])[
             -1
@@ -190,11 +189,11 @@ class Graph:
         :param sigma: sigma of the gaussian distribution
         :type sigma: float
 
-        .. math:: 
+        .. math::
             f(x) = \frac {I}{σ*\sqrt{2π}} e^{-\frac 12(\frac {x-eV}{σ})^2}
 
         :return: Gaussian of the impulse
-        :rtype: np.array 
+        :rtype: np.array
         """
         return I / (sigma * np.sqrt(2 * np.pi)) * np.exp(-0.5 * ((x - ev) / sigma) ** 2)
 
@@ -438,6 +437,7 @@ class Ref_graph:
     """
     Load the reference graph in order to shift and convolute properly the calculated one.
     """
+
     def __init__(self, fname: str, log, is_ev: bool = False, invert: bool = False):
         data = np.loadtxt(fname, dtype=float)
         self.x = data[:, 0] if is_ev else FACTOR_EV_NM / data[:, 0]

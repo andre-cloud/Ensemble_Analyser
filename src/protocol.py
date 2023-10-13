@@ -34,7 +34,7 @@ class Solvent:
             return f"SMD({self.solvent})"
         elif self.solvent:
             return f"CPCM({self.solvent})"
-        else: 
+        else:
             return "CPCM"
 
     def __repr__(self):  # pragma: no cover
@@ -42,9 +42,9 @@ class Solvent:
             return f"SMD({self.solvent})"
         elif self.solvent:
             return f"CPCM({self.solvent})"
-        else: 
+        else:
             return "CPCM"
-        
+
     def orca_input_smd(self):
         """Get the ORCA input string for the SMD
 
@@ -73,8 +73,8 @@ class Protocol:
         thrB: float = None,
         thrGMAX: float = None,
         constrains: list = [],
-        maxstep : float = 0.2,
-        fmax : float = 0.05, 
+        maxstep: float = 0.2,
+        fmax: float = 0.05,
     ):
         self.number = number
         self.functional = functional.upper()
@@ -92,11 +92,11 @@ class Protocol:
         self.maxstep = maxstep
 
         if fmax != 0.05:
-            self.fmax = fmax 
+            self.fmax = fmax
         elif self.constrains:
-            self.fmax = 0.1 
-        else: # if an opt freeze, the max force convergence will be lifted. 
-            self.fmax = fmax 
+            self.fmax = 0.1
+        else:  # if an opt freeze, the max force convergence will be lifted.
+            self.fmax = fmax
 
         self.freq_fact = freq_fact
         self.graph = graph
@@ -153,10 +153,11 @@ class Protocol:
         :type mode: str
         """
 
-        calc = {"orca": {
-            "opt": self.orca_opt,
-            "freq": self.orca_freq,
-            "energy": self.calc_orca_std,
+        calc = {
+            "orca": {
+                "opt": self.orca_opt,
+                "freq": self.orca_freq,
+                "energy": self.calc_orca_std,
             },
         }
 
@@ -187,11 +188,6 @@ class Protocol:
             return f"{self.functional}/{self.basis} - {self.solvent}"
         return f"{self.functional}/{self.basis}"
 
-
-
-
-
-
     # ORCA CALCULATOR
 
     def orca_common_str(self, cpu):
@@ -213,16 +209,18 @@ class Protocol:
         else:
             solv = ""
 
-        si = f'{self.functional} {self.basis} {solv} engrad nopop'
+        si = f"{self.functional} {self.basis} {solv} engrad nopop"
 
         smd = ""
         if self.solvent and "xtb" not in self.functional.lower():
             smd = self.solvent.orca_input_smd()
 
-        ob = (f"%pal nprocs {cpu} end "
+        ob = (
+            f"%pal nprocs {cpu} end "
             + smd
             + self.add_input
-            + (" %maxcore 4000" if "maxcore" not in self.add_input else ""))
+            + (" %maxcore 4000" if "maxcore" not in self.add_input else "")
+        )
 
         return si, ob
 
@@ -250,7 +248,7 @@ class Protocol:
         )
 
         return calculator, label
-    
+
     def orca_opt(self, cpu: int, charge: int, mult: int):
         """Optimization calculator
 
@@ -266,7 +264,7 @@ class Protocol:
         calculator, label = self.calc_orca_std(cpu, charge, mult)
 
         return calculator, label
-    
+
     def orca_freq(self, cpu: int, charge: int, mult: int):
         """Frequency calculator
 
@@ -284,10 +282,6 @@ class Protocol:
 
         return calculator, label
 
-
-
-
-
     @staticmethod
     def load_raw(json):
         return Protocol(
@@ -304,9 +298,7 @@ class Protocol:
             thrGMAX=json["thrGMAX"],
             freq_fact=json["freq_fact"],
             graph=json["graph"],
-            constrains=json["constrains"], 
-            maxstep = json["maxstep"],
-            fmax=json["fmax"]
+            constrains=json["constrains"],
+            maxstep=json["maxstep"],
+            fmax=json["fmax"],
         )
-
-

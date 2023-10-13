@@ -58,7 +58,7 @@ def calc_translational_energy(T: float) -> float:
 
     .. math::
         U_{trans} = \frac 32 K_bT
-    
+
     Return in Eh
 
     :param T: temperature [K]
@@ -96,7 +96,7 @@ def calc_qRRHO_energy(freq: np.ndarray, T: float) -> np.ndarray:
 
     .. math::
         U = h\nu c \frac { e^{-\frac {h\nu c}{k_bT}} }{1-e^{-\frac {h\nu c}{k_bT}}}
-    
+
 
     :param freq: frequency list
     :type freq: np.ndarray
@@ -143,7 +143,7 @@ def calc_translational_entropy(MW: float, T: float, P: float) -> float:
 
     .. math::
         S_{trans} = k_b \left(\frac 52 + \ln\left(\sqrt{\frac{2πMWk_bT}{N_A*h^2}}^3 \frac {k_bT}{p}\right)\right)
-    
+
 
     :param MW: molecular weight
     :type MW: float
@@ -154,7 +154,7 @@ def calc_translational_entropy(MW: float, T: float, P: float) -> float:
     :param solv: solvent string
     :type solv: str
 
-    
+
     :return: translational entropy in Eh
     :rtype: float
     """
@@ -220,7 +220,7 @@ def calc_S_R_grimme(freq: np.array, T: float, B: np.array) -> np.array:
     .. math::
         R = \frac 12 \left( 1+ \ln\left( \frac {8π^3 \frac {h}{8π^2\nu c} B k_bT} {\left(\frac {h}{8π^2\nu c}+B\right)h^2} \right)\right) k_b
 
-        
+
     :param freq: frequencies [cm-1]
     :type freq: np.array
     :param T: temperature [K]
@@ -329,6 +329,9 @@ def free_gibbs_energy(
     :type alpha: int
     :param P: pressure [kPa]
     :type P: float
+
+    :return: Gibbs energy
+    :rtype: float
     """
     freq = freq[freq > 0]
 

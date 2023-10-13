@@ -11,7 +11,7 @@ def _parse_xyz_str(fl: str):
     :type fl: str
 
     :return: list of atoms, XYZ position of the atoms
-    :rtype: tuple 
+    :rtype: tuple
     """
     fl = fl[2:]
     atoms, geom = [], []
@@ -45,7 +45,6 @@ class SerialiseEncoder(json.JSONEncoder):
         return obj.__dict__
 
 
-
 def tail(file_path, num_lines):
     """Tail an output file
 
@@ -62,6 +61,5 @@ def tail(file_path, num_lines):
     return "".join(fl[-num_lines:])
 
 
-
-if __name__=='__main__':
+if __name__ == "__main__":
     print(tail("orca.out", 4))

@@ -34,7 +34,6 @@ class Conformer:
         self.active = True
         self.color = "#%06x" % random.randint(0, 0xFFFFFF)
 
-
         # IO
         self.folder = f"conf_{self.number}"
         if not raw:
@@ -42,7 +41,7 @@ class Conformer:
 
     def get_ase_atoms(self, calc=None):
         """Return the atoms needed for the calculation
-        
+
         :param calc: the type of calculator to use
         :type calc: ase.calculator
         :return: the ase instance ready to start the calculation
@@ -86,7 +85,7 @@ class Conformer:
 
     def write_xyz(self):
         """Write the XYZ string to be stored in a file
-        
+
         :return: the string in the XYZ formatting
         :rtype: str
         """
@@ -100,7 +99,7 @@ class Conformer:
 
     def create_log(self):
         """Generate all the information needed for the tabulation
-        
+
         :return: a long tuple with all the information. (Number, E, G, B, Erel, Pop, Elapsed Time)
         :rtype: tuple
         """
@@ -121,7 +120,7 @@ class Conformer:
     @staticmethod
     def load_raw(json):
         """Load raw configuration. Restart purposes.
-        
+
         :param json: All the information of the conformer
         :type json: dict
         :return: the conformer instance

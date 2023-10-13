@@ -15,7 +15,7 @@ def create_log(output):
     Creating an logger instance.
 
     :param output: output filename
-    :type output: str 
+    :type output: str
 
     :return: logger instance
     :rtype: logging

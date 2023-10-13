@@ -5,7 +5,6 @@ from sklearn.metrics import silhouette_score
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from typing import Union
-import logging
 
 plt.set_loglevel("error")
 
@@ -20,7 +19,7 @@ def get_best_ncluster(coords):
     :type coords: 2D-array
 
     :return: best number of clusters
-    :rtype: int 
+    :rtype: int
     """
 
     k_range = range(10, 30)
@@ -35,13 +34,13 @@ def get_best_ncluster(coords):
 
 def calc_pca(confs: list, ncluster: Union[int, None] = None) -> tuple:
     """
-    Function that execute the actual PCA analysis. 
+    Function that execute the actual PCA analysis.
     It wants to understand how conformations differ from each other based on their overall Cartesian coordinates
 
     :param confs: whole list of the confomers
-    :type confs: list 
+    :type confs: list
     :param ncluster: number of cluster to form using the KMean analysis
-    :type ncluster: int 
+    :type ncluster: int
     :return: PCA transformation, Clustered coordinates
     :rtype: tuple
     """
@@ -73,7 +72,6 @@ def calc_pca(confs: list, ncluster: Union[int, None] = None) -> tuple:
     return pca_scores, clusters, colors, numbers
 
 
-
 def obtain_markers_from_cluster(cluster: int):
     """
     Obtain a different marker from the marker library for different conformers
@@ -86,7 +84,12 @@ def obtain_markers_from_cluster(cluster: int):
 
 
 def save_PCA_snapshot(
-    fname: str, title: str, pca_scores: np.ndarray, clusters: np.ndarray, colors : list, numbers : list
+    fname: str,
+    title: str,
+    pca_scores: np.ndarray,
+    clusters: np.ndarray,
+    colors: list,
+    numbers: list,
 ):
     """
     Graph and save the image of the PCA analysis
@@ -104,7 +107,13 @@ def save_PCA_snapshot(
 
     fig, ax = plt.subplots()
 
-    for x, y, m, c, n in zip(pca_scores[:, 0], pca_scores[:, 1], np.array(list(map(obtain_markers_from_cluster, clusters))), colors, numbers): 
+    for x, y, m, c, n in zip(
+        pca_scores[:, 0],
+        pca_scores[:, 1],
+        np.array(list(map(obtain_markers_from_cluster, clusters))),
+        colors,
+        numbers,
+    ):
         ax.scatter(x, y, c=c, marker=m, label=f"CONF {n}")
     ax.set_xlabel("Principal Component 1")
     ax.set_ylabel("Principal Component 2")
@@ -113,15 +122,19 @@ def save_PCA_snapshot(
     y = ax.get_ylim()
     x = ax.get_xlim()
 
-    ax.vlines(0, y[0], y[1], "#353535", '--', alpha=0.2)
-    ax.hlines(0, x[0], x[1], "#353535", '--', alpha=0.2)
+    ax.vlines(0, y[0], y[1], "#353535", "--", alpha=0.2)
+    ax.hlines(0, x[0], x[1], "#353535", "--", alpha=0.2)
 
     ax.set_xlim(x)
     ax.set_ylim(y)
     plt.legend(
-        loc='upper left', bbox_to_anchor=(1.05, 1.),
-          fancybox=True, shadow=True, ncol=2, title="Conformers"
-               )
+        loc="upper left",
+        bbox_to_anchor=(1.05, 1.0),
+        fancybox=True,
+        shadow=True,
+        ncol=2,
+        title="Conformers",
+    )
     plt.tight_layout()
     plt.savefig(fname, dpi=300)
     return None

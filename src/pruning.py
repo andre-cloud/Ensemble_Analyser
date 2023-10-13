@@ -47,7 +47,7 @@ def rmsd(check, ref) -> float:
 
     .. math::
         RMSD = \sqrt{ \frac {1}{N} ||v_{i} - w_{i}|| }
-    
+
     :param check: conformer to be compared
     :type check: Conformer
     :param ref: reference

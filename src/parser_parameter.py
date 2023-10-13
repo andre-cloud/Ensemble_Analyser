@@ -40,7 +40,7 @@ def get_freq(fl: str, calc: str) -> np.ndarray:
     :type fl: str
     :param calc: calculator type
     :type calc: str
-    
+
     :return: frequency [cm-1]
     :rtype: np.array
     """
@@ -75,7 +75,7 @@ def get_opt_geometry(fl: str, calc: str, log) -> np.ndarray:
     :type calc: str
     :param log: logger instance
     :type log: logger
-    
+
     :return: the geometry (XYZ) for each atom
     :rtype: np.ndarray
     """
@@ -98,16 +98,18 @@ def get_opt_geometry(fl: str, calc: str, log) -> np.ndarray:
 
     return geom
 
+
 def tranform_float(freq):
     """Transform into a float number a string. Thought for a map function
 
     :param freq: frequency to be transformed
     :type freq: float
-    
+
     :return: frequency transformed
     :rtype: str
     """
     return f"{freq:.2f}"
+
 
 def get_conf_parameters(conf, number: int, p, time, temp: float, log) -> bool:
     """
@@ -129,11 +131,11 @@ def get_conf_parameters(conf, number: int, p, time, temp: float, log) -> bool:
     :return: calculation ended correctly and not crashed due to server error
     :rtype: bool
     """
-    
+
     with open(os.path.join(conf.folder, f"protocol_{number}.out")) as f:
         fl = f.readlines()
 
-    # already handeled in the opt function 
+    # already handeled in the opt function
     # if p.opt:
     #     # Fetch and set the optimized geometry
     #     conf.last_geometry = get_opt_geometry(fl, p.calculator, log)

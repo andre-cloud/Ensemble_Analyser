@@ -72,7 +72,7 @@ def save_snapshot(output, confs, log):
     """
     Save an XYZ file to store a bunch of geometries
 
-    :param output: output filename 
+    :param output: output filename
     :type output: str
     :param confs: list of all active conformers
     :type confs: list(Conformer)

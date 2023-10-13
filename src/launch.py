@@ -66,8 +66,7 @@ def launch(idx, conf, protocol, cpu, log, temp, ensemble, try_num: int = 1) -> N
     )
     st = time.perf_counter()
 
-
-    if protocol.opt: 
+    if protocol.opt:
         atoms, label = optimize(conf, protocol, cpu=cpu, log=log)
 
     if protocol.freq:
@@ -87,8 +86,6 @@ def launch(idx, conf, protocol, cpu, log, temp, ensemble, try_num: int = 1) -> N
     if protocol.freq:
         os.rename(f"{label}.hess", f"{conf.folder}/protocol_{protocol.number}.hess")
     os.remove(f"{label}.gbw")
-
-        
 
     if not get_conf_parameters(conf, protocol.number, protocol, end - st, temp, log):
         if try_num <= MAX_TRY:
@@ -145,7 +142,6 @@ def run_protocol(conformers, p, temperature, cpu, log) -> None:
         count += 1
 
     conformers = sorted(conformers)
-
 
     log.info("\nEnded Calculations\n")
     log.info(
@@ -297,7 +293,6 @@ def start_calculation(
                 invert=invert,
             )
 
-
     # sort the final ensemble
     c_ = sorted(conformers)
     calculate_rel_energies(c_, temperature)
@@ -390,7 +385,7 @@ def check_protocol(log, func, graph, add_input, idx, last_prot_with_freq=None) -
 
     :return: None
 
-    :raise IOError: 
+    :raise IOError:
         There is an error in the input file with the definition of the functional. See the output file.
     """
 
