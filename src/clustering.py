@@ -5,6 +5,8 @@ from sklearn.metrics import silhouette_score
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from typing import Union
+import matplotlib.gridspec as gridspec
+from scipy.interpolate import griddata
 
 plt.set_loglevel("error")
 
@@ -41,7 +43,7 @@ def calc_pca(confs: list, ncluster: Union[int, None] = None) -> tuple:
     :type confs: list
     :param ncluster: number of cluster to form using the KMean analysis
     :type ncluster: int
-    :return: PCA transformation, Clustered coordinates
+    :return: PCA transformation (pca_energy), Clustered coordinates (clusters), colors and number of the conformer and energy
     :rtype: tuple
     """
 
@@ -49,6 +51,9 @@ def calc_pca(confs: list, ncluster: Union[int, None] = None) -> tuple:
     data = np.array([conf.last_geometry for conf in confs])
     colors = [conf.color for conf in confs]
     numbers = [conf.number for conf in confs]
+    energy = np.array([conf.get_energy for conf in confs])
+    energy -= min(energy)
+
     coords_2d = np.reshape(data, (data.shape[0], data.shape[1] * data.shape[2]))
 
     # normalize it to have mean=0 and variance=1
@@ -75,7 +80,7 @@ def calc_pca(confs: list, ncluster: Union[int, None] = None) -> tuple:
     else:
         clusters = [conf.cluster for conf in confs]
 
-    return pca_scores, clusters, colors, numbers
+    return pca_scores, clusters, colors, numbers, energy
 
 
 def obtain_markers_from_cluster(cluster: int):
@@ -96,6 +101,7 @@ def save_PCA_snapshot(
     clusters: np.ndarray,
     colors: list,
     numbers: list,
+    z: list,
 ):
     """
     Graph and save the image of the PCA analysis
@@ -108,10 +114,35 @@ def save_PCA_snapshot(
     :type pca_scores: np.array
     :param clusters: Clustered coordinates
     :type clusters: np.array
+    :param z: list of energy of the conformers
+    :type z: np.array
+
     :rtype: None
     """
 
-    fig, ax = plt.subplots()
+    fig = plt.figure()
+
+    gs = gridspec.GridSpec(2, 1, height_ratios=[50, 1])
+
+    ax = fig.add_subplot(gs[0])
+    color_axis = fig.add_subplot(gs[1])
+
+
+    x_ = pca_scores[:, 0]
+    y_ = pca_scores[:, 1]
+
+    resolution = 500  # Grid resolution
+    xi = np.linspace(min(x_), max(x_), resolution)
+    yi = np.linspace(min(y_), max(y_), resolution)
+    xi, yi = np.meshgrid(xi, yi)
+    zi = griddata((x_, y_), z, (xi, yi), method="linear")
+    
+
+    im = ax.pcolormesh(xi, yi, zi, shading="auto", cmap="coolwarm", alpha=0.75)
+    ax.contour(xi, yi, zi, '--', levels=10, colors='grey', linewidths=0.5, alpha=0.6)
+
+    cbar = plt.colorbar(im, cax=color_axis, orientation="horizontal")
+    cbar.set_label("Potential energy [kcal/mol]")
 
     for x, y, m, c, n in zip(
         pca_scores[:, 0],
@@ -160,14 +191,15 @@ def perform_PCA(confs: list, ncluster: int, fname: str, title: str, log) -> None
     :type title: str
     :param log:  logger instance
     :type log: logging
+
     :rtype: None
     """
     log.info("Starting PCA analysis")
     nc = ncluster if len(confs) > ncluster else len(confs) - 1
     if nc <= 2:
         return None
-    pca_scores, clusters, colors, numbers = calc_pca(confs, ncluster=nc)
-    save_PCA_snapshot(fname, title, pca_scores, clusters, colors, numbers)
+    pca_scores, clusters, colors, numbers, energy = calc_pca(confs, ncluster=nc)
+    save_PCA_snapshot(fname, title, pca_scores, clusters, colors, numbers, energy)
 
     return None
 
