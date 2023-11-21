@@ -137,7 +137,7 @@ class Conformer:
         )
         a.energies = json["energies"]
         a.active = json["active"]
-        a.cluster = json["cluster"]
+        # a.cluster = json["cluster"]
         return a
 
     def __str__(self) -> str:

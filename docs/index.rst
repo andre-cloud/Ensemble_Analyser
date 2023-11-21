@@ -22,6 +22,7 @@ Welcome to Ensemble Analyser's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   cs
    src
 
 Indices and tables

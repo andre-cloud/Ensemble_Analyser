@@ -34,15 +34,18 @@ def get_best_ncluster(coords):
     return k_range[np.argmax(silhouette_scores)]
 
 
-def calc_pca(confs: list, ncluster: Union[int, None] = None) -> tuple:
+def calc_pca(confs: list, cluster=False, ncluster: Union[int, None] = None) -> tuple:
     """
     Function that execute the actual PCA analysis.
     It wants to understand how conformations differ from each other based on their overall Cartesian coordinates
 
     :param confs: whole list of the confomers
     :type confs: list
-    :param ncluster: number of cluster to form using the KMean analysis
+    :param cluster: execute the cluster action. Default is False
+    :type cluster: bool, optional
+    :param ncluster: number of cluster to form using the KMean analysis. Defualt is None
     :type ncluster: int
+
     :return: PCA transformation (pca_energy), Clustered coordinates (clusters), colors and number of the conformer and energy
     :rtype: tuple
     """
@@ -65,20 +68,25 @@ def calc_pca(confs: list, ncluster: Union[int, None] = None) -> tuple:
     pca.fit(coords_2d)
     pca_scores = pca.transform(coords_2d)
 
-    # getting the best number of clusters
-    if not ncluster:
-        n_c = get_best_ncluster(coords_2d)
-    else:
-        n_c = ncluster
+    # getting the best number of clusters or create an array of 1
+    if cluster:
+        if not ncluster:
+            n_c = get_best_ncluster(coords_2d)
+        else:
+            n_c = ncluster
 
-    # Cluster the data the first time
-    if not confs[0].cluster:
-        kmeans = KMeans(n_clusters=n_c, n_init=10)
-        clusters = kmeans.fit_predict(pca_scores)
-        for idx, conf in enumerate(confs):
-            conf.cluster = clusters[idx]
-    else:
-        clusters = [conf.cluster for conf in confs]
+        # Cluster the data
+        if not confs[0].cluster:
+            kmeans = KMeans(n_clusters=n_c, n_init=10)
+            clusters = kmeans.fit_predict(pca_scores)
+            for idx, conf in enumerate(confs):
+                conf.cluster = clusters[idx]
+        else:
+            clusters = [conf.cluster for conf in confs]
+
+    else: 
+        clusters = [1 for _ in confs]
+
 
     return pca_scores, clusters, colors, numbers, energy
 

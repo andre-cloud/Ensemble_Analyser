@@ -75,6 +75,7 @@ class Protocol:
         constrains: list = [],
         maxstep: float = 0.2,
         fmax: float = 0.05,
+        cluster : bool = False
     ):
         self.number = number
         self.functional = functional.upper()
@@ -90,6 +91,7 @@ class Protocol:
         self.calculator = calculator
         self.constrains = constrains
         self.maxstep = maxstep
+        self.cluster = cluster
 
         if fmax != 0.05:
             self.fmax = fmax
@@ -301,4 +303,5 @@ class Protocol:
             constrains=json["constrains"],
             maxstep=json["maxstep"],
             fmax=json["fmax"],
+            cluster=json["cluster"],
         )

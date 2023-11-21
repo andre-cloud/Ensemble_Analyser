@@ -454,7 +454,6 @@ def main():
     invert = settings.get("invert", False)
 
     # initiate the log
-    print(output)
     log = create_log(output)
     # deactivate the log of matplotlib
     logging.getLogger("matplotlib").disabled = False
