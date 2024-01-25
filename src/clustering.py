@@ -99,7 +99,7 @@ def obtain_markers_from_cluster(cluster: int):
     :return: marker
     :rtype: matplotlib.lines
     """
-    return MARKERS[cluster]
+    return MARKERS[cluster%len(MARKERS)]
 
 
 def save_PCA_snapshot(
@@ -160,6 +160,7 @@ def save_PCA_snapshot(
         numbers,
     ):
         ax.scatter(x, y, c=c, marker=m, label=f"CONF {n}")
+        
     ax.set_xlabel("Principal Component 1")
     ax.set_ylabel("Principal Component 2")
     ax.set_title(title)

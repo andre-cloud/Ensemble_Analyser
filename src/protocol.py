@@ -211,7 +211,7 @@ class Protocol:
         else:
             solv = ""
 
-        si = f"{self.functional} {self.basis} {solv} engrad nopop"
+        si = f"{self.functional} {self.basis} {solv} nopop"
 
         smd = ""
         if self.solvent and "xtb" not in self.functional.lower():
@@ -264,6 +264,7 @@ class Protocol:
         :rtype: tuple
         """
         calculator, label = self.calc_orca_std(cpu, charge, mult)
+        calculator.parameters["orcasimpleinput"] += " engrad"
 
         return calculator, label
 

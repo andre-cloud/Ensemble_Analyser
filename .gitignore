@@ -142,3 +142,4 @@ checkpoint.json
 last_protocol
 *dat
 try.py
+.DS_Store
