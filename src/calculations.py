@@ -160,7 +160,10 @@ def single_point(conf, protocol, cpu: int, log, attempts=0):
         geom = get_opt_geometry(fl, protocol.calculator, log)
         set_last_geometry(conf, geom)
 
-    atoms.get_potential_energy()
+    try:
+        atoms.get_potential_energy()
+    except Exception as e:
+        pass
 
     return atoms, label
 
