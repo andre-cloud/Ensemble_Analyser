@@ -83,7 +83,7 @@ class Protocol:
         self.solvent = Solvent(solvent) if solvent else None
         self.opt = opt
         self.freq = freq
-        self.add_input = add_input
+        self.add_input = add_input.replace("'", '"')
         self.thrG = thrG
         self.thrB = thrB
         self.thrGMAX = thrGMAX
