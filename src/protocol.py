@@ -201,7 +201,7 @@ class Protocol:
         :rtype: str
         """
 
-        if self.solvent:
+        if self.solvent and not (self.solvent.smd and self.freq):
             if "xtb" in self.functional.lower():
                 solv = f"ALPB({self.solvent.solvent})"
             elif self.solvent.solvent.strip():
@@ -214,7 +214,7 @@ class Protocol:
         si = f"{self.functional} {self.basis} {solv} nopop"
 
         smd = ""
-        if self.solvent and "xtb" not in self.functional.lower():
+        if self.solvent and ("xtb" not in self.functional.lower()) and (not self.freq):
             smd = self.solvent.orca_input_smd()
 
         ob = (

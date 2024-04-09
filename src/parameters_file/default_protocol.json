@@ -5,7 +5,7 @@
         "opt": false,
         "freq": false, 
         "solvent" : {
-            "solvent": "acetonitrile",
+            "solvent": "toluene",
             "smd":false
         }
     },
@@ -15,7 +15,7 @@
         "opt": false,
         "freq": false, 
         "solvent" : {
-            "solvent": "acetonitrile",
+            "solvent": "toluene",
             "smd":false
         }
     },
@@ -25,7 +25,7 @@
         "opt": true,
         "freq": false, 
         "solvent" : {
-            "solvent": "acetonitrile",
+            "solvent": "toluene",
             "smd":false
         }
     },
@@ -35,19 +35,7 @@
         "opt": false,
         "freq": true, 
         "solvent" : {
-            "solvent": "acetonitrile",
-            "smd":false
-        }
-    },
-    "4":{
-        "functional": "cam-b3lyp",
-        "basis": "def2-tzvpp",
-        "opt": false,
-        "freq": false,
-        "graph": true, 
-        "add_input": "%tddft nroots 30 tda false end", 
-        "solvent" : {
-            "solvent": "acetonitrile",
+            "solvent": "toluene",
             "smd":false
         }
     }
