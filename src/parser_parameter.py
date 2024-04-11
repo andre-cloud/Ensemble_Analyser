@@ -185,7 +185,7 @@ def get_conf_parameters(conf, number: int, p, time, temp: float, log) -> bool:
     g = ""
     if freq.size > 0:
         if (p.freq and p.solvent.smd):
-            g = free_gibbs_energy(SCF=conf._last_energy["E"], T=temp, freq=freq, mw=conf.weight_mass, B=B, m=conf.mult)
+            g = free_gibbs_energy(SCF=conf._last_energy["E"]/EH_TO_KCAL, T=temp, freq=freq, mw=conf.weight_mass, B=B, m=conf.mult)
         else:
             g = free_gibbs_energy(
                 SCF=e, T=temp, freq=freq, mw=conf.weight_mass, B=B, m=conf.mult
