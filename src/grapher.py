@@ -72,14 +72,14 @@ class Graph:
             uv = self.auto_convolution(
                 os.path.join(os.getcwd(), "uv_ref.dat"),
                 fname_ref_damp=os.path.join(os.getcwd(), "uv_ref_norm_eV.dat"),
-                impulses=self.ecd_impulses,
+                impulses=self.uv_impulses,
                 fname=f"uv_protocol_{self.protocol.number}_auto_conv.dat",
                 user_sigma=FWHM / (2 * np.sqrt(2 * np.log(2))) if FWHM else None,
                 user_shift=shift,
             )
         else:
             uv = self.calc_graph(
-                impulses=self.ecd_impulses,
+                impulses=self.uv_impulses,
                 sigma=FWHM / (2 * np.sqrt(2 * np.log(2))) if FWHM else 1 / 3,
                 fname=f"uv_protocol_{self.protocol.number}.dat",
                 save=True,
