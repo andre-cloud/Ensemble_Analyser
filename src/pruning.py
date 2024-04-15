@@ -13,14 +13,14 @@ except ImportError as e:  # pragma: no cover
     from logger import DEBUG, ordinal
 
 
-def cut_over_thr_max(confs: list, number: int, thrGMAX: float, log) -> None:
+def cut_over_thr_max(confs: list, number: str, thrGMAX: float, log) -> None:
     """
     Get conformers over the threshold of the amx energy
 
     :param confs: whole ensemble list
     :type confs: list
-    :param thrGMAX: number of the protocol to be checked
-    :type thrGMAX: int
+    :param number: number of the protocol to be checked
+    :type number: str
     :param thrGMAX: maximum relative energy
     :type thrGMAX: float
     :param log: logger instance
@@ -32,7 +32,7 @@ def cut_over_thr_max(confs: list, number: int, thrGMAX: float, log) -> None:
 
     en = []
     for i in confs:
-        e_tmp = i.energies[number]["G"] if i.energies[number]["G"] else i.energies[number]["E"]
+        e_tmp = i.energies[str(number)]["G"] if i.energies[str(number)]["G"] else i.energies[str(number)]["E"]
         en.append(e_tmp)
     ens = np.array([(i, j) for i, j in zip(confs, en) if i.active])
     ens[:, 1] = ens[:, 1] - min(ens[:, 1])
