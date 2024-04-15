@@ -75,11 +75,6 @@ def launch(idx, conf, protocol, cpu, log, temp, ensemble, try_num: int = 1) -> N
     if not (protocol.opt or protocol.freq):
         atoms, label = single_point(conf, protocol, cpu=cpu, log=log)
 
-    # try:
-    #     atm.get_potential_energy()
-    # except ase.calculators.calculator.PropertyNotImplementedError:
-    #     pass
-
     end = time.perf_counter()
 
     os.rename(f"{label}.out", f"{conf.folder}/protocol_{protocol.number}.out")
