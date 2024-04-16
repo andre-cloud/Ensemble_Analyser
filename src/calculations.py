@@ -124,6 +124,8 @@ def calc_freq(conf, protocol, cpu: int, log, attempts=0):
         vib.run()
     except ase.calculators.calculator.PropertyNotImplementedError:
         pass
+    except ase.calculators.calculator.ReadError:
+        pass
 
     return atoms, label
 

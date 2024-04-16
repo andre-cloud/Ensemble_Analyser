@@ -9,10 +9,10 @@
         - MAXSTEP = max displacement during the optimization
 
 2. Each conformer has been assigned to a color, in order to be recognized in the PCA graph
+3. PCA now shows a color-map interpolation of the energy surface 
 
 ## Further modification: 
 
 1. Normalize the electronic graph only in the window that has to be considered
-2. Consider the possibility to turn on a color-map visualization in the PCA
-3. Write a complete guide
-4. Benchmark the best values for the MAXSTEP and FMAX parameter.
+2. Write a complete guide
+3. Benchmark the best values for the MAXSTEP and FMAX parameter.
