@@ -274,6 +274,9 @@ class Graph:
         # resampling the experimental data, in order to fetch the x_exp.size
         X = self.x.copy()
         Y_exp_interp = np.interp(X, ref.x, ref.y, left=0, right=0)
+        if set(list(Y_exp_interp)) == set([0. ]):
+            Y_exp_interp = np.interp(X, ref.x[::-1], ref.y[::-1], left=0, right=0)
+
         Graph.damp_graph(fname_ref_damp, X, Y_exp_interp)
 
         def optimiser(variables):
@@ -440,6 +443,7 @@ class Ref_graph:
 
     def __init__(self, fname: str, log, is_ev: bool = False, invert: bool = False):
         data = np.loadtxt(fname, dtype=float)
+        self.data = data[np.argsort(data[:, 1])]
         self.x = data[:, 0] if is_ev else FACTOR_EV_NM / data[:, 0]
         self.y = data[:, 1] * (1 if not invert else -1)
 
@@ -454,85 +458,3 @@ class Ref_graph:
         return float(max(self.x))
 
 
-# class Test_Graph:  # pragma: no cover:
-#     def __init__(self, fname):
-#         data = np.loadtxt(fname, dtype=float)
-#         self.x = np.linspace(
-#             FACTOR_EV_NM / 100, FACTOR_EV_NM / (800), 10**5
-#         )  # eV x axis
-#         self.eV = FACTOR_EV_NM / data[:, 0]
-#         self.imp = data[:, 1]
-#         # self.y = Graph.normalise(self.y)
-
-#     def calc_graph(self, shift, sigma):
-#         x = self.x.copy()
-#         y = np.zeros(x.shape)
-
-#         y_ = np.zeros(x.shape)
-#         for ev, I in zip(self.eV, self.imp):
-#             y_ += Graph.gaussian(x, ev + shift, I, sigma)
-#         y += y_
-
-#         return y
-
-
-# if __name__ == "__main__":  # pragma: no cover:
-#     import scipy.optimize as opt
-
-#     os.chdir("src")
-
-#     a = Ref_graph("../files/ecd_ref.txt", None)
-#     x_min, x_max = a.x_min, a.x_max
-#     a.y = Graph.normalise(a.y)
-#     # area_ref = trapezoid(a.y, a.x)
-
-#     # resampling the experimental data, in order to fetch the x_exp.size
-#     X = np.linspace(FACTOR_EV_NM / 100, FACTOR_EV_NM / (800), 10**5)
-
-#     Y_exp_interp = np.interp(X, a.x, a.y, left=0, right=0)
-
-#     computed = Test_Graph("../files/impulse.dat")
-
-#     graphs = {}
-
-#     def optimiser(variables):
-#         sigma, shift, threshold = variables
-#         Y_comp = Graph.normalise(computed.calc_graph(shift, sigma))
-
-#         # RMSD calculation
-#         rmsd = np.sqrt(
-#             np.mean(
-#                 (
-#                     Y_comp[np.where((X >= x_min) & (X <= x_max))]
-#                     - Y_exp_interp[np.where((X >= x_min) & (X <= x_max))]
-#                 )
-#                 ** 2
-#             )
-#         )
-#         return rmsd
-
-#     confidence = 0.025
-#     initial_guess = [0.2, -0.000001, confidence]
-#     result = opt.minimize(
-#         optimiser,
-#         initial_guess,
-#         bounds=[(0.08, 0.21), (-1, 1), (0.01, 0.01)],
-#         options={"maxiter": 10000},
-#         method="Powell",
-#     )
-#     if result.success:
-#         print(result)
-#         print()
-#         print((result.x), result.fun, (1 - result.fun / 2) * 100, result.nfev)
-#     else:
-#         print("NO")
-
-#     sigma, shift, thr = result.x
-
-#     plt.plot(X, Y_exp_interp)
-#     plt.fill_between(X, Y_exp_interp - confidence, Y_exp_interp + confidence, alpha=0.2)
-#     for i in graphs:
-#         plt.plot(X, graphs[i], "--", alpha=0.4)
-
-#     plt.plot(X, Graph.normalise(computed.calc_graph(shift, sigma)))
-#     plt.show()
