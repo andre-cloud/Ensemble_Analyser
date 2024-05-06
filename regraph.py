@@ -1,3 +1,5 @@
+#!/data/bin/python_env/bin/python3
+
 from src.launch import restart
 from src.logger import create_log
 from src.grapher import Graph
