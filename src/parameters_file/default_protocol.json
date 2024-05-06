@@ -20,8 +20,8 @@
         }
     },
     "2": {
-    	"functional": "r2scan-3c",
-        "basis": "def2-mtzvpp",
+    	"functional": "wb97x-d4",
+        "basis": "def2-svp",
         "opt": true,
         "freq": false, 
         "solvent" : {
@@ -30,8 +30,8 @@
         }
     },
     "3": {
-    	"functional": "r2scan-3c",
-        "basis": "def2-mtzvpp",
+    	"functional": "wb97x-d4",
+        "basis": "def2-svp",
         "opt": false,
         "freq": true, 
         "solvent" : {

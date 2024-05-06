@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import scipy.optimize as opt
+from scipy.signal import argrelextrema
 from scipy.constants import c, h, electron_volt, R
 import matplotlib.pyplot as plt
 from typing import Union
@@ -46,8 +47,8 @@ class Graph:
         self.spectra = []
         self.filter_outputs()
 
-        self.uv_impulses = [self.get_uv(i) for i in self.spectra]
-        self.ecd_impulses = [self.get_ecd(i) for i in self.spectra]
+        self.uv_impulses = [self.get_uv(i, pop) for i, pop in zip(self.spectra, self.pop)]
+        self.ecd_impulses = [self.get_ecd(i, pop) for i, pop in zip(self.spectra, self.pop)]
 
         # creating the ECD and UV graph. If uv_ref.dat and/or ecd_ref.dat auto-convolution of the reference is performed
         if os.path.exists(os.path.join(os.getcwd(), "ecd_ref.dat")):
@@ -113,12 +114,14 @@ class Graph:
 
         return None
 
-    def get_uv(self, spectra):
+    def get_uv(self, spectra, pop):
         """
         Get the impulses for the UV spectra calculation
 
-        :param spectra: parse output file
+        :param spectra: parsed output file
         :type spectra: str
+        :param pop: bolzmann population
+        :type pop: float
 
         :return: energy and impulse tuple
         :rtype: tuple(float, float)
@@ -139,18 +142,21 @@ class Graph:
                     i.strip().split()[
                         regex_parsing[self.protocol.calculator]["idx_imp_UV"]
                     ]
-                ),
+                ) * pop,
             )
             for i in graph.splitlines()
             if i
         ]
 
-    def get_ecd(self, spectra):
+    def get_ecd(self, spectra, pop):
         """
         Get the impulses for the ECD spectra calculation
 
         :param spectra: parse output file
         :type spectra: str
+        :param pop: bolzmann population
+        :type pop: float
+
 
         :return: energy and impulse tuple
         :rtype: tuple(float, float)
@@ -171,7 +177,7 @@ class Graph:
                     i.strip().split()[
                         regex_parsing[self.protocol.calculator]["idx_imp_ECD"]
                     ]
-                ),
+                ) * pop,
             )
             for i in graph.splitlines()
             if i
@@ -274,6 +280,10 @@ class Graph:
         # resampling the experimental data, in order to fetch the x_exp.size
         X = self.x.copy()
         Y_exp_interp = np.interp(X, ref.x, ref.y, left=0, right=0)
+        
+        max_exp, limit = ref.get_maximum()
+
+
         if set(list(Y_exp_interp)) == set([0. ]):
             Y_exp_interp = np.interp(X, ref.x[::-1], ref.y[::-1], left=0, right=0)
 
@@ -283,12 +293,14 @@ class Graph:
             """
             Callback for the scipy.optimize.minimize
             """
-            sigma, shift = variables
+            sigma, shift, = variables
+
+            # Here the normalization! 
             Y_comp = Graph.normalise(
                 self.calc_graph(
                     impulses=impulses, shift=shift, sigma=sigma, save=False
                 ),
-                norm=norm,
+                norm=norm, x_min=idx_x_min, x_max=idx_x_max
             )
 
             # RMSD calculation
@@ -303,8 +315,7 @@ class Graph:
             )
             return rmsd
 
-        confidence = 0.025
-        initial_guess = [0.2, -0.000001]
+        initial_guess = [0.1415, -0.000001]
         shift = (user_shift, user_shift) if user_shift else (-1, 1)
         sigma = (user_sigma, user_sigma) if user_sigma else (0.08, 0.21)
         default_guess = [0.1415, 0]  # the σ correspond to a FWHM of 0.33 eV
@@ -329,7 +340,6 @@ class Graph:
                 ),
                 norm=norm,
             )
-            # TODO: introducing the normalisation ONLY in the window considered?
 
         else:
             self.log.info(
@@ -379,7 +389,7 @@ class Graph:
                     y=y_,
                 )
 
-            y += self.pop[idx] * y_
+            y += y_
 
         return y
 
@@ -419,7 +429,7 @@ class Graph:
         return arr[:, 0], arr[:, 1]
 
     @staticmethod
-    def normalise(y: np.ndarray, norm=1) -> np.array:
+    def normalise(y: np.ndarray, norm=1, x_min=0, x_max=-1) -> np.array:
         """
         Normalize an ensemble between 1 and -1, if not set otherwise.
 
@@ -427,12 +437,17 @@ class Graph:
         :type y: np.array
         :param norm: max value to normalize at
         :type norm: float
+        :param x_min: index of the minimum value of the experimental value
+        :type x_min: int
+        :param x_max: index of the maximum value of the experimental value
+        :type x_max: int
+
 
         :return: 1D normalized array
         :rtype: np.array
         """
         return (
-            y / (np.max([np.max(y), np.min(y) * (-1 if np.min(y) < 0 else 1)])) * norm
+            y / (np.max([np.max(y[x_min:x_max]), np.min(y[x_min:x_max]) * (-1 if np.min(y[x_min:x_max]) < 0 else 1)])) * norm
         )
 
 
@@ -443,7 +458,7 @@ class Ref_graph:
 
     def __init__(self, fname: str, log, is_ev: bool = False, invert: bool = False):
         data = np.loadtxt(fname, dtype=float)
-        self.data = data[np.argsort(data[:, 1])]
+        self.data = data[np.argsort(data[:, 0])]
         self.x = data[:, 0] if is_ev else FACTOR_EV_NM / data[:, 0]
         self.y = data[:, 1] * (1 if not invert else -1)
 
@@ -456,5 +471,46 @@ class Ref_graph:
     @property
     def x_max(self):
         return float(max(self.x))
+    
+
+    def get_maximum(self):
+        """Get the maximum between the maxima. 
+
+        :return: X,Y of the maximum of the maxima. This point must lay between two minima to be considered
+        :rtype: tuple
+        """
 
 
+        max_indices = argrelextrema(self.y, np.greater, order=100)[0]
+        min_indices = argrelextrema(self.y, np.less, order=100)[0]
+        
+        first_nonzero_index = np.argmax(self.y != 0)
+        last_nonzero_index = len(self.y) - np.argmax(self.y[::-1] != 0) - 1
+        
+        if self.y[first_nonzero_index] >= self.y[first_nonzero_index+1]:
+            max_indices = np.concatenate((max_indices, [first_nonzero_index])) if len(max_indices)!=0 else np.array([self.y[0]])
+        elif self.y[first_nonzero_index] < self.y[first_nonzero_index+1]:
+            min_indices = np.concatenate((min_indices, [first_nonzero_index])) if len(min_indices)!=0 else np.array([self.y[0]])
+
+        if self.y[last_nonzero_index] >= self.y[last_nonzero_index-1]:
+            max_indices = np.concatenate((max_indices, [last_nonzero_index])) if len(max_indices)!=0 else np.array([self.y[last_nonzero_index]])
+        elif self.y[last_nonzero_index] < self.y[last_nonzero_index-1]:
+            min_indices = np.concatenate((min_indices, [last_nonzero_index])) if len(min_indices)!=0 else np.array([self.y[last_nonzero_index]])
+            
+        massimi = np.array([(self.x[i], self.y[i]) for i in max_indices])
+        minimi = np.array([(self.x[i], self.y[i]) for i in min_indices])
+        
+        max_with_minima = []
+        for i in max_indices:
+            left_min_index = np.argmax(min_indices < i)
+            right_min_index = np.argmax(min_indices > i)
+            if left_min_index >= 0 and right_min_index <= len(min_indices) - 1:
+                max_with_minima.append((self.x[i], self.y[i]))
+        
+        max_with_minima = np.array(max_with_minima)
+        tmp = np.argmax(max_with_minima[:, 1])
+        max_with_minima = list(max_with_minima[tmp])
+        
+        limits = [minimi[np.where(minimi[:, 0]<max_with_minima[0])[0][-1]], minimi[np.where(minimi[:, 0]>max_with_minima[0])[0][0]] ]
+
+        return max_with_minima, limits
