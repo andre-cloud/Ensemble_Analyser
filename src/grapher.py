@@ -33,11 +33,16 @@ class Graph:
         FWHM: Union[None, float] = None,
         shift: Union[None, float] = None,
         invert: bool = False,
+        regraph: bool = False,
     ):
         self.confs = [i for i in confs if i.active]
         self.protocol = protocol
         self.log = log
-        self.pop = self.calc_pop(T)
+        if not regraph:
+            self.pop = self.calc_pop(T)
+        else:
+            self.pop = self.get_pop()
+
         self.log.debug(self.pop)
 
         self.x = np.linspace(
@@ -203,32 +208,40 @@ class Graph:
         """
         return I / (sigma * np.sqrt(2 * np.pi)) * np.exp(-0.5 * ((x - ev) / sigma) ** 2)
 
-    def calc_pop(self, T) -> np.ndarray:
+    def calc_pop(self, T, regraph) -> np.ndarray:
         """
         Boltzmann population, if necessary with correction
 
         :param T: temperature [K]
         :type T: float
+        :param regraph: the routine ragraph is running
+        :type regraph: bool
 
         :return: population distribution
         :rtype: np.array (1D array)
         """
 
-        n, n_1 = self.protocol.number, str(int(self.protocol.number) - 1)
+        if not regraph:
+            n, n_1 = self.protocol.number, str(int(self.protocol.number) - 1)
 
-        # CONF do have frequency calculation before
-        if self.protocol.freq:
-            pass
-        elif self.confs[0].energies[n_1]["G"]:
-            # So energy is corrected: if functionals are the same, nothing change; else energy of the new function is corrected with lower frequency correction
-            for i in self.confs:
-                i.energies[n]["G"] = i.energies[n]["E"] + (
-                    i.energies[n_1]["G"] - i.energies[n_1]["E"]
-                )
+            # CONF do have frequency calculation before
+            if self.protocol.freq:
+                pass
+            elif self.confs[0].energies[n_1]["G"]:
+                # So energy is corrected: if functionals are the same, nothing change; else energy of the new function is corrected with lower frequency correction
+                for i in self.confs:
+                    i.energies[n]["G"] = i.energies[n]["E"] + (
+                        i.energies[n_1]["G"] - i.energies[n_1]["E"]
+                    )
+            else:
+                raise IOError("No frequency calculation")
+        
+
+            ens = np.array([i.get_energy for i in self.confs])
+
         else:
-            raise IOError("No frequency calculation")
+            ens = np.array([i.energies[self.protocol]["G"] for i in self.confs])
 
-        ens = np.array([i.get_energy for i in self.confs])
         ens_rel = ens - min(ens)
         bolz = np.exp((-ens_rel * 4186) / (R * T))
         pop = bolz / np.sum(bolz)

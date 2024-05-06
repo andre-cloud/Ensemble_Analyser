@@ -41,5 +41,6 @@ for p in args.idx:
         definition=definition,
         FWHM=fwhm,
         shift=shift,
-        invert=invert
+        invert=invert,
+        regraph = True
     )
