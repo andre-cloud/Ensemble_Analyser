@@ -38,10 +38,7 @@ class Graph:
         self.confs = [i for i in confs if i.active]
         self.protocol = protocol
         self.log = log
-        if not regraph:
-            self.pop = self.calc_pop(T)
-        else:
-            self.pop = self.get_pop()
+        self.pop = self.calc_pop(T, regraph=regraph)
 
         self.log.debug(self.pop)
 
