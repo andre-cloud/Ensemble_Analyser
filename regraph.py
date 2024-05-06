@@ -18,7 +18,7 @@ conformers, protocol, start_from = restart()
 
 settings = json.load(open("settings.json"))
 output = 'regraph.log'
-temperature = settings.get("temperature", args.temperature)
+temperature = settings.get("temperature", 298.15)
 final_lambda = settings.get("final_lambda", 800)
 definition = settings.get("definition", 4)
 fwhm = settings.get("fwhm", None)
