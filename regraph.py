@@ -1,6 +1,6 @@
 #!/data/bin/python_env/bin/python3
 
-from src.launch import restart
+from src.launch import restart, create_protocol
 from src.logger import create_log
 from src.grapher import Graph
 import json, logging
@@ -29,6 +29,9 @@ invert = settings.get("invert", False)
 log = create_log(output)
 # deactivate the log of matplotlib
 logging.getLogger("matplotlib").disabled = False
+
+protocol = create_protocol('protocol_dump.json', log)
+
 
 
 for p in args.idx: 
