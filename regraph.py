@@ -1,7 +1,8 @@
 #!/data/bin/python_env/bin/python3
 
-from src.launch import restart, create_protocol
+from src.launch import restart
 from src.logger import create_log
+from src.protocol import Protocol
 from src.grapher import Graph
 import json, logging
 import argparse
@@ -13,6 +14,14 @@ parser.add_argument('idx', nargs='+', help="Protocol's number to (re-)generate t
 
 
 args = parser.parse_args()
+
+
+def load_protocol(p: dict, log: logging): 
+
+    protocol = [Protocol.load_raw(**d) for d in p]
+
+    return protocol
+
 
 conformers, protocol, start_from = restart()
 
@@ -30,7 +39,7 @@ log = create_log(output)
 # deactivate the log of matplotlib
 logging.getLogger("matplotlib").disabled = False
 
-protocol = create_protocol(json.load(open('protocol_dump.json')), log)
+protocol = load_protocol(json.load(open('protocol_dump.json')), log)
 
 
 
