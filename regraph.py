@@ -30,7 +30,7 @@ log = create_log(output)
 # deactivate the log of matplotlib
 logging.getLogger("matplotlib").disabled = False
 
-protocol = create_protocol('protocol_dump.json', log)
+protocol = create_protocol(json.load(open('protocol_dump.json')), log)
 
 
 
