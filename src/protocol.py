@@ -287,22 +287,4 @@ class Protocol:
 
     @staticmethod
     def load_raw(json):
-        return Protocol(
-            number=json["number"],
-            functional=json["functional"],
-            basis=json["basis"],
-            solvent=Solvent(**json["solvent"]) if json["solvent"] else None,
-            opt=json["opt"],
-            freq=json["freq"],
-            add_input=json["add_input"],
-            calculator=json["calculator"],
-            thrB=json["thrB"],
-            thrG=json["thrG"],
-            thrGMAX=json["thrGMAX"],
-            freq_fact=json["freq_fact"],
-            graph=json["graph"],
-            constrains=json["constrains"],
-            maxstep=json["maxstep"],
-            fmax=json["fmax"],
-            cluster=json["cluster"],
-        )
+        return Protocol(**json)

@@ -235,17 +235,17 @@ class Graph:
         
 
             ens = np.array([i.get_energy for i in self.confs])
+            ens_rel = ens - min(ens)
+            bolz = np.exp((-ens_rel * 4186) / (R * T))
+            pop = bolz / np.sum(bolz)
+            for idx, i in enumerate(list(ens)):
+                self.confs[idx]._last_energy["G"] = ens[idx]
+                self.confs[idx]._last_energy["Erel"] = i
+                self.confs[idx]._last_energy["Pop"] = pop[idx] * 100
 
         else:
-            ens = np.array([i.energies[self.protocol]["G"] for i in self.confs])
+            pop = np.array([i.energies[self.protocol.number]["Pop"] for i in self.confs])
 
-        ens_rel = ens - min(ens)
-        bolz = np.exp((-ens_rel * 4186) / (R * T))
-        pop = bolz / np.sum(bolz)
-        for idx, i in enumerate(list(ens)):
-            self.confs[idx]._last_energy["G"] = ens[idx]
-            self.confs[idx]._last_energy["Erel"] = i
-            self.confs[idx]._last_energy["Pop"] = pop[idx] * 100
 
         return pop
 

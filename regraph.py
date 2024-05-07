@@ -17,8 +17,7 @@ args = parser.parse_args()
 
 
 def load_protocol(p: dict, log: logging): 
-
-    protocol = [Protocol.load_raw(**d) for d in p]
+    protocol = [Protocol.load_raw(p[d]) for d in p]
 
     return protocol
 
@@ -46,7 +45,7 @@ protocol = load_protocol(json.load(open('protocol_dump.json')), log)
 for p in args.idx: 
     Graph(
         confs=conformers,
-        protocol=p,
+        protocol=protocol[int(p)],
         log=log,
         T=temperature,
         final_lambda=final_lambda,
