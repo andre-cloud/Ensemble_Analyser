@@ -510,7 +510,6 @@ class Ref_graph:
         massimi = np.array([(self.x[i], self.y[i]) for i in max_indices])
 
         minimi = np.array([(self.x[i], self.y[i]) for i in min_indices])
-        print(minimi)
 
 
         max_with_minima = []
@@ -521,6 +520,7 @@ class Ref_graph:
                 max_with_minima.append((self.x[i], self.y[i]))
         
         max_with_minima = np.array(max_with_minima)
+        print(max_with_minima)
         tmp = np.argmax(max_with_minima[:, 1])
         max_with_minima = list(max_with_minima[tmp])
         
