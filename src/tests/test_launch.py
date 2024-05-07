@@ -3,6 +3,7 @@ import mock
 from ase.calculators.calculator import CalculationFailed
 import pytest
 
+
 @mock.patch("builtins.open", mock.mock_open())
 def test_launch():
     conf = mock.MagicMock()
@@ -14,9 +15,6 @@ def test_launch():
     protocol.get_calculator = mock.Mock(return_value=(mock.MagicMock(), "test label"))
 
     with pytest.raises(RuntimeError):
-        launch(
-        1, conf, protocol, mock.MagicMock(), log, 0, mock.MagicMock()
-        )
+        launch(1, conf, protocol, mock.MagicMock(), log, 0, mock.MagicMock())
     # log.critical.assert_called_once()
     # log.error.assert_called_once()
-

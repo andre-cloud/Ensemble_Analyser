@@ -21,7 +21,6 @@ def test_calc_zpe():
 
 
 def test_free_energy():
-
     SCF = 10.0
     T = 298.15
     freq = np.array([100, 200, 300])
@@ -35,12 +34,11 @@ def test_free_energy():
 
     result = free_gibbs_energy(SCF, T, freq, mw, B, m, linear, cut_off, alpha, P)
 
-    # Perform your assertions on the result with 
+    # Perform your assertions on the result with
     assert np.isclose(result, 9.977753201998967)
 
     linear = True
     result = free_gibbs_energy(SCF, T, freq, mw, B, m, linear, cut_off, alpha, P)
 
-    # Perform your assertions on the result with 
+    # Perform your assertions on the result with
     assert np.isclose(result, 9.979965792434896)
-

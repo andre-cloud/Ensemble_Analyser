@@ -84,9 +84,8 @@ def calc_pca(confs: list, cluster=False, ncluster: Union[int, None] = None) -> t
         else:
             clusters = [conf.cluster for conf in confs]
 
-    else: 
+    else:
         clusters = [1 for _ in confs]
-
 
     return pca_scores, clusters, colors, numbers, energy
 
@@ -99,7 +98,7 @@ def obtain_markers_from_cluster(cluster: int):
     :return: marker
     :rtype: matplotlib.lines
     """
-    return MARKERS[cluster%len(MARKERS)]
+    return MARKERS[cluster % len(MARKERS)]
 
 
 def save_PCA_snapshot(
@@ -135,7 +134,6 @@ def save_PCA_snapshot(
     ax = fig.add_subplot(gs[0])
     color_axis = fig.add_subplot(gs[1])
 
-
     x_ = pca_scores[:, 0]
     y_ = pca_scores[:, 1]
 
@@ -144,10 +142,9 @@ def save_PCA_snapshot(
     yi = np.linspace(min(y_), max(y_), resolution)
     xi, yi = np.meshgrid(xi, yi)
     zi = griddata((x_, y_), z, (xi, yi), method="linear")
-    
 
     im = ax.pcolormesh(xi, yi, zi, shading="auto", cmap="coolwarm", alpha=0.75)
-    ax.contour(xi, yi, zi, '--', levels=10, colors='grey', linewidths=0.5, alpha=0.6)
+    ax.contour(xi, yi, zi, "--", levels=10, colors="grey", linewidths=0.5, alpha=0.6)
 
     cbar = plt.colorbar(im, cax=color_axis, orientation="horizontal")
     cbar.set_label("Potential energy [kcal/mol]")
@@ -160,7 +157,7 @@ def save_PCA_snapshot(
         numbers,
     ):
         ax.scatter(x, y, c=c, marker=m, label=f"CONF {n}")
-        
+
     ax.set_xlabel("Principal Component 1")
     ax.set_ylabel("Principal Component 2")
     ax.set_title(title)

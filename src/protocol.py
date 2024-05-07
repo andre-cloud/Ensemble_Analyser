@@ -75,7 +75,7 @@ class Protocol:
         constrains: list = [],
         maxstep: float = 0.2,
         fmax: float = 0.05,
-        cluster : bool = False
+        cluster: bool = False,
     ):
         self.number = number
         self.functional = functional.upper()

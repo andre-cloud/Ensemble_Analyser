@@ -494,5 +494,4 @@ def main():
     if len(idxs_graphs) > 0:
         plot_conv_graph(idxs_graphs, protocol)
 
-
     log.info("Ensemble refined correcly!")

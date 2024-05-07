@@ -33,8 +33,7 @@ zi = griddata((x_, y_), z, (xi, yi), method="cubic", rescale=True)
 # zi[zi <= 0] = 0.01
 
 im = ax.pcolormesh(xi, yi, zi, shading="auto", cmap="coolwarm", alpha=0.75)
-ax.contour(xi, yi, zi, '--', levels=10, colors='grey', linewidths=0.5, alpha=0.6)
-
+ax.contour(xi, yi, zi, "--", levels=10, colors="grey", linewidths=0.5, alpha=0.6)
 
 
 # ax2 = plt.subplot(gs[1])
