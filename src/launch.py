@@ -7,7 +7,7 @@ try:
     from src.IOsystem import SerialiseEncoder
     from src.protocol import Protocol, load_protocol
     from src.pruning import calculate_rel_energies, check_ensemble
-    from src.grapher import Graph
+    from src.grapher import Graph, plot_conv_graph
     from src.clustering import perform_PCA
     from src.title import title
     from src.calculations import optimize, calc_freq, single_point
@@ -488,3 +488,11 @@ def main():
         shift=shift,
         invert=invert,
     )
+
+    # Plots eventual graphs
+    idxs_graphs = [i.number for i in protocol if i.graph]
+    if len(idxs_graphs) > 0:
+        plot_conv_graph(idxs_graphs, protocol)
+
+
+    log.info("Ensemble refined correcly!")

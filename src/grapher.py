@@ -1,5 +1,5 @@
 import numpy as np
-import os
+import os, sys
 import scipy.optimize as opt
 from scipy.signal import argrelextrema
 from scipy.constants import c, h, electron_volt, R
@@ -53,8 +53,25 @@ class Graph:
         self.ecd_impulses = [self.get_ecd(i, pop) for i, pop in zip(self.spectra, self.pop)]
 
         # creating the ECD and UV graph. If uv_ref.dat and/or ecd_ref.dat auto-convolution of the reference is performed
+        if os.path.exists(os.path.join(os.getcwd(), "uv_ref.dat")):
+            uv, shift = self.auto_convolution(
+                os.path.join(os.getcwd(), "uv_ref.dat"),
+                fname_ref_damp=os.path.join(os.getcwd(), "uv_ref_norm_eV.dat"),
+                impulses=self.uv_impulses,
+                fname=f"uv_protocol_{self.protocol.number}_auto_conv.dat",
+                user_sigma=FWHM / (2 * np.sqrt(2 * np.log(2))) if FWHM else None,
+                user_shift=shift,
+            )
+        else:
+            uv = self.calc_graph(
+                impulses=self.uv_impulses,
+                sigma=FWHM / (2 * np.sqrt(2 * np.log(2))) if FWHM else 1 / 3,
+                fname=f"uv_protocol_{self.protocol.number}.dat",
+                save=True,
+            )
+
         if os.path.exists(os.path.join(os.getcwd(), "ecd_ref.dat")):
-            ecd = self.auto_convolution(
+            ecd, shift = self.auto_convolution(
                 os.path.join(os.getcwd(), "ecd_ref.dat"),
                 fname_ref_damp=os.path.join(os.getcwd(), "ecd_ref_norm_eV.dat"),
                 impulses=self.ecd_impulses,
@@ -71,22 +88,6 @@ class Graph:
                 save=True,
             )
 
-        if os.path.exists(os.path.join(os.getcwd(), "uv_ref.dat")):
-            uv = self.auto_convolution(
-                os.path.join(os.getcwd(), "uv_ref.dat"),
-                fname_ref_damp=os.path.join(os.getcwd(), "uv_ref_norm_eV.dat"),
-                impulses=self.uv_impulses,
-                fname=f"uv_protocol_{self.protocol.number}_auto_conv.dat",
-                user_sigma=FWHM / (2 * np.sqrt(2 * np.log(2))) if FWHM else None,
-                user_shift=shift,
-            )
-        else:
-            uv = self.calc_graph(
-                impulses=self.uv_impulses,
-                sigma=FWHM / (2 * np.sqrt(2 * np.log(2))) if FWHM else 1 / 3,
-                fname=f"uv_protocol_{self.protocol.number}.dat",
-                save=True,
-            )
 
         Graph.damp_graph(f"ecd_protocol_{self.protocol.number}.dat", self.x, ecd)
         Graph.damp_graph(f"uv_protocol_{self.protocol.number}.dat", self.x, uv)
@@ -244,7 +245,10 @@ class Graph:
                 self.confs[idx]._last_energy["Pop"] = pop[idx] * 100
 
         else:
-            pop = np.array([i.energies[self.protocol.number]["Pop"] for i in self.confs])
+            if self.confs[0].energies.get("Pop"):
+                pop = np.array([i.energies[self.protocol.number]["Pop"] for i in self.confs])
+            else: 
+                pop = self.calc_pop(T, False)
 
 
         return pop
@@ -291,7 +295,16 @@ class Graph:
         X = self.x.copy()
         Y_exp_interp = np.interp(X, ref.x, ref.y, left=0, right=0)
         
-        max_exp, limit = ref.get_maximum()
+        max_exp, [low, up] = ref.get_maximum()
+        idx_x_max = np.where(self.x>=low)[0][-1]
+        idx_x_min = np.where(self.x<=up)[0][0]
+        
+        # imp = np.array(impulses)
+        # impulses = imp.reshape((imp.shape[0]*imp.shape[1], 2))
+        # tmp = np.where((impulses[:, 0]>=x_min) & (impulses[:, 0]<=x_max))[0]
+        # print(tmp)
+        # print(impulses[np.argmax(impulses[tmp, 1])])
+        # print(max_exp) 
 
 
         if set(list(Y_exp_interp)) == set([0. ]):
@@ -304,7 +317,6 @@ class Graph:
             Callback for the scipy.optimize.minimize
             """
             sigma, shift, = variables
-
             # Here the normalization! 
             Y_comp = Graph.normalise(
                 self.calc_graph(
@@ -327,7 +339,8 @@ class Graph:
 
         initial_guess = [0.1415, -0.000001]
         shift = (user_shift, user_shift) if user_shift else (-1, 1)
-        sigma = (user_sigma, user_sigma) if user_sigma else (0.08, 0.21)
+        sigma = (user_sigma, user_sigma) if user_sigma else (0.08, 0.27)
+        # corresponding to FWMH = (0.19, 0.64) eV
         default_guess = [0.1415, 0]  # the σ correspond to a FWHM of 0.33 eV
         result = opt.minimize(
             optimiser,
@@ -348,7 +361,7 @@ class Graph:
                 self.calc_graph(
                     impulses=impulses, shift=shift, sigma=sigma, save=True, fname=fname
                 ),
-                norm=norm,
+                norm=norm, x_min=idx_x_min, x_max=idx_x_max
             )
 
         else:
@@ -362,10 +375,10 @@ class Graph:
                 self.calc_graph(
                     impulses=impulses, shift=0, sigma=1 / 3, save=True, fname=fname
                 ),
-                norm=norm,
+                norm=norm, x_min=idx_x_min, x_max=idx_x_max
             )
 
-        return Y_COMP
+        return Y_COMP, shift
 
     def calc_graph(self, impulses, sigma, shift=0, fname="", save=False) -> np.ndarray:
         """
@@ -456,9 +469,10 @@ class Graph:
         :return: 1D normalized array
         :rtype: np.array
         """
-        return (
+        y = (
             y / (np.max([np.max(y[x_min:x_max]), np.min(y[x_min:x_max]) * (-1 if np.min(y[x_min:x_max]) < 0 else 1)])) * norm
         )
+        return y
 
 
 class Ref_graph:
@@ -522,8 +536,63 @@ class Ref_graph:
         max_with_minima = np.array(max_with_minima)
         tmp = np.argmax(max_with_minima[:, 1])
         max_with_minima = list(max_with_minima[tmp])
-        
-        print(minimi)
-        limits = [minimi[np.where(minimi<max_with_minima)[0][-1]], minimi[np.where(minimi>max_with_minima)[0][0]] ]
+    
+        min_min = minimi[:, 0]<max_with_minima[0]
+        min_max = minimi[:, 0]>max_with_minima[0]
+        low = minimi[:, 0][min_min][-1] if minimi[:, 0][min_min] else max_with_minima[0] - 0.3
+        up = minimi[:, 0][min_max][0] if minimi[:, 0][min_max] else max_with_minima[0] + 0.3
 
-        return max_with_minima, limits
+        return max_with_minima, [low, up]
+
+
+def plot_conv_graph(graphs, protocol):
+    """Create the electronic graphs calculated
+
+    :param graphs: Indexes of the "graph" protocols
+    :type graphs: list[int]
+    :param protocol: The protocols list
+    :type protocol: list[Protocol]
+    """
+    
+    fig, ax = plt.subplots(1,1)
+    ref = None
+    if os.path.exists(os.path.join(os.getcwd(), 'uv_ref_norm_eV.dat')):
+        ref = np.loadtxt('uv_ref_norm_eV.dat')
+        ax.plot(ref[:, 0], ref[:, 1],label='Experiment', lw=1.5)
+    for p in graphs:
+        data_uv = np.loadtxt(f'uv_protocol_{p}.dat')
+        ax.plot(data_uv[: ,0], data_uv[:, 1], label=protocol[int(p)].functional, lw=1)
+
+    if not (ref is None):
+        ax.set_ylim(0,1.2)
+    plt.legend(
+    loc='upper center', bbox_to_anchor=(0.5, -0.13),
+    fancybox=True, shadow=True, ncol=4
+)
+    plt.title('UV comparison graph')
+    plt.xlabel('Energy [eV]')
+    plt.ylabel('Intenisty [a.u.]')
+    plt.tight_layout()
+    plt.savefig('regraphed_uv.png', dpi=300)
+
+    fig, ax = plt.subplots(1,1)
+    ref = None
+    if os.path.exists(os.path.join(os.getcwd(), 'ecd_ref_norm_eV.dat')):
+        ref = np.loadtxt('ecd_ref_norm_eV.dat')
+        ax.plot(ref[:, 0], ref[:, 1],label='Experiment', lw=1.5)
+    for p in graphs:
+        data_uv = np.loadtxt(f'ecd_protocol_{p}.dat')
+        ax.plot(data_uv[: ,0], data_uv[:, 1], label=protocol[int(p)].functional, lw=1)
+
+    if not (ref is None):
+        ax.set_ylim(-1.2,1.2)
+
+    plt.legend(
+    loc='upper center', bbox_to_anchor=(0.5, -0.13),
+    fancybox=True, shadow=True, ncol=4
+)
+    plt.title('ECD comparison graph')
+    plt.xlabel('Energy [eV]')
+    plt.ylabel('Intenisty [a.u.]')
+    plt.tight_layout()
+    plt.savefig('regraphed_ecd.png', dpi=300)

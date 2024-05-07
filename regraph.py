@@ -3,7 +3,7 @@
 from src.launch import restart
 from src.logger import create_log
 from src.protocol import Protocol
-from src.grapher import Graph
+from src.grapher import Graph, plot_conv_graph
 import json, logging
 import argparse
 
@@ -43,7 +43,7 @@ protocol = load_protocol(json.load(open('protocol_dump.json')), log)
 
 
 for p in args.idx: 
-    
+    log.info(f'Protocol number: {p}')
     Graph(
         confs=conformers,
         protocol=protocol[int(p)],
@@ -56,3 +56,6 @@ for p in args.idx:
         invert=invert,
         regraph = True
     )
+
+
+plot_conv_graph(args.idx, protocol)
