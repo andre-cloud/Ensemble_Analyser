@@ -523,7 +523,7 @@ class Ref_graph:
         tmp = np.argmax(max_with_minima[:, 1])
         max_with_minima = list(max_with_minima[tmp])
         
-        print(max_with_minima[0][0])
-        limits = [minimi[np.where(minimi[:, 0]<max_with_minima[0][0])[0][-1]], minimi[np.where(minimi[:, 0]>max_with_minima[0][0])[0][0]] ]
+        print(max_with_minima[0])
+        limits = [minimi[np.where(minimi[:, 0]<max_with_minima[0])[0][-1]], minimi[np.where(minimi[:, 0]>max_with_minima[0])[0][0]] ]
 
         return max_with_minima, limits
