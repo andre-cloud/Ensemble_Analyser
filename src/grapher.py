@@ -503,9 +503,9 @@ class Ref_graph:
             min_indices = np.concatenate((min_indices, [first_nonzero_index])) if len(min_indices)!=0 else np.array([self.y[0]])
 
         if self.y[last_nonzero_index] >= self.y[last_nonzero_index-1]:
-            max_indices = np.concatenate((max_indices, [last_nonzero_index])) if len(max_indices)!=0 else np.array([[last_nonzero_index]])
+            max_indices = np.concatenate((max_indices, [last_nonzero_index])) if len(max_indices)!=0 else np.array([last_nonzero_index])
         elif self.y[last_nonzero_index] < self.y[last_nonzero_index-1]:
-            min_indices = np.concatenate((min_indices, [last_nonzero_index])) if len(min_indices)!=0 else np.array([[last_nonzero_index]])
+            min_indices = np.concatenate((min_indices, [last_nonzero_index])) if len(min_indices)!=0 else np.array([last_nonzero_index])
             
         massimi = np.array([(self.x[i], self.y[i]) for i in max_indices])
         print(min_indices)
