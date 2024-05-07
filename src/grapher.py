@@ -520,10 +520,9 @@ class Ref_graph:
                 max_with_minima.append((self.x[i], self.y[i]))
         
         max_with_minima = np.array(max_with_minima)
-        print(max_with_minima)
         tmp = np.argmax(max_with_minima[:, 1])
         max_with_minima = list(max_with_minima[tmp])
         
-        limits = [minimi[np.where(minimi[:, 0]<max_with_minima[0])[0][-1]], minimi[np.where(minimi[:, 0]>max_with_minima[0])[0][0]] ]
+        limits = [minimi[np.where(minimi[:, 0]<max_with_minima[0][0])[0][-1]], minimi[np.where(minimi[:, 0]>max_with_minima[0][0])[0][0]] ]
 
         return max_with_minima, limits
