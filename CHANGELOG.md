@@ -1,3 +1,17 @@
+# Version 0.3.0
+
+## Major updates:
+
+1. Normalize the electronic graph only in the window that has to be considered
+2. Created a stand-alone script to generate the graphs even after all the calculation ended
+
+## Further updates:
+
+1. Clustering based on dihedral rather than on absolute position
+2. Clustering method
+3. IR graphs
+4. Protocol keyword "No cut", to not prune the ensemble
+
 # Version 0.2.0
 
 ## Major updates:

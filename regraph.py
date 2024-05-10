@@ -43,7 +43,7 @@ protocol = load_protocol(json.load(open('protocol_dump.json')), log)
 
 
 for p in args.idx: 
-    log.info(f'Protocol number: {p}')
+    log.info(f'\n\nProtocol number: {p}')
     Graph(
         confs=conformers,
         protocol=protocol[int(p)],

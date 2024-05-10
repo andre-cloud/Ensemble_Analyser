@@ -1,4 +1,6 @@
 import numpy as np
+import numpy.ma as ma
+
 import os
 import sys
 import scipy.optimize as opt
@@ -41,7 +43,7 @@ class Graph:
         self.log = log
         self.pop = self.calc_pop(T, regraph=regraph)
 
-        self.log.debug(self.pop)
+        # self.log.debug(self.pop)
 
         self.x = np.linspace(
             FACTOR_EV_NM / 150, FACTOR_EV_NM / (final_lambda), 10**definition
@@ -297,13 +299,9 @@ class Graph:
         x_min, x_max = ref.x_min, ref.x_max
         ref.y = Graph.normalise(ref.y, norm=norm)
 
-        # resampling the experimental data, in order to fetch the x_exp.size
         X = self.x.copy()
-        Y_exp_interp = np.interp(X, ref.x, ref.y, left=0, right=0)
-
-        max_exp, [low, up] = ref.get_maximum()
-        idx_x_max = np.where(self.x >= low)[0][-1]
-        idx_x_min = np.where(self.x <= up)[0][0]
+        Y_exp_interp, idx_x_max, idx_x_min = ref.interpolate(X, fname_ref_damp)
+        
 
         # imp = np.array(impulses)
         # impulses = imp.reshape((imp.shape[0]*imp.shape[1], 2))
@@ -312,10 +310,7 @@ class Graph:
         # print(impulses[np.argmax(impulses[tmp, 1])])
         # print(max_exp)
 
-        if set(list(Y_exp_interp)) == set([0.0]):
-            Y_exp_interp = np.interp(X, ref.x[::-1], ref.y[::-1], left=0, right=0)
-
-        Graph.damp_graph(fname_ref_damp, X, Y_exp_interp)
+        dx = X[0]-X[1]
 
         def optimiser(variables):
             """
@@ -335,17 +330,9 @@ class Graph:
                 x_max=idx_x_max,
             )
 
-            # RMSD calculation
-            rmsd = np.sqrt(
-                np.mean(
-                    (
-                        Y_comp[np.where((X >= x_min) & (X <= x_max))]
-                        - Y_exp_interp[np.where((X >= x_min) & (X <= x_max))]
-                    )
-                    ** 2
-                )
-            )
-            return rmsd
+            diversity = self.diversity_function(Y_comp[np.where((X >= x_min) & (X <= x_max))], Y_exp_interp[np.where((X >= x_min) & (X <= x_max))], dx=dx)
+
+            return diversity
 
         initial_guess = [0.1415, -0.000001]
         shift = (user_shift, user_shift) if user_shift else (-1, 1)
@@ -363,7 +350,7 @@ class Graph:
             sigma, shift = result.x
             self.log.info(
                 f"Convergence of parameters succeeded in {result.nfev} steps.\n"
-                f"Confidence level: {(1-result.fun/2)*100:.2f}%. Parameters obtained\n"
+                f"Confidence level: {(1-result.fun)*100:.2f}%. Parameters obtained\n"
                 f"\t- σ = {sigma:.4f} eV (that correspond to a FWHM = {(sigma*np.sqrt(2*np.log(2))*2):.4f} eV)\n"
                 f"\t- Δ = {shift:.4f} eV (in this case, a negative shift corresponds to a RED-shift)"
             )
@@ -393,6 +380,36 @@ class Graph:
             )
 
         return Y_COMP, shift
+
+
+    def diversity_function(self, comp, ref, **kwargs) -> float: 
+
+        dx = kwargs.get('dx', 1e-5)
+        if set(ref==0) != set([False, True]):
+            
+            # mape
+            # diff = ref - comp
+            # diff_p = np.abs(diff)/ref
+            # diversity = np.mean(diff_p)/2
+
+            # # RMSD
+            diversity = np.sqrt(
+                np.mean((comp - ref)** 2)
+            ) / 2
+
+
+            # integrals
+            # i_ref = np.trapz(np.flip(ref)**2, dx=dx)
+            # i_comp = np.trapz(np.flip(comp)**2, dx=dx)
+            # diversity = np.sqrt(np.abs(i_comp-i_ref))         
+
+
+        else: 
+            diversity = 1
+
+        print(diversity)
+        return diversity
+
 
     def calc_graph(self, impulses, sigma, shift=0, fname="", save=False) -> np.ndarray:
         """
@@ -496,6 +513,10 @@ class Graph:
             )
             * norm
         )
+
+        plt.plot(y)
+        plt.show()
+
         return y
 
 
@@ -527,8 +548,8 @@ class Ref_graph:
         :rtype: tuple
         """
 
-        max_indices = argrelextrema(self.y, np.greater, order=100)[0]
-        min_indices = argrelextrema(self.y, np.less, order=100)[0]
+        max_indices = argrelextrema(self.y, np.greater, order=10)[0]
+        min_indices = argrelextrema(self.y, np.less, order=10)[0]
 
         first_nonzero_index = np.argmax(self.y != 0)
         last_nonzero_index = len(self.y) - np.argmax(self.y[::-1] != 0) - 1
@@ -576,18 +597,36 @@ class Ref_graph:
 
         min_min = minimi[:, 0] < max_with_minima[0]
         min_max = minimi[:, 0] > max_with_minima[0]
+
         low = (
-            minimi[:, 0][min_min][-1]
-            if minimi[:, 0][min_min]
+            minimi[min_min, 0][-1]
+            if len(minimi[min_min, 0]) != 0 
             else max_with_minima[0] - 0.3
         )
         up = (
-            minimi[:, 0][min_max][0]
-            if minimi[:, 0][min_max]
+            minimi[min_max, 0][0]
+            if len(minimi[min_max, 0]) != 0
             else max_with_minima[0] + 0.3
         )
 
         return max_with_minima, [low, up]
+    
+    def interpolate(self, X, fname_ref_damp):
+
+        Y_exp_interp = np.interp(X, self.x, self.y, left=0, right=0)
+        if set(list(Y_exp_interp)) == set([0.0]):
+            Y_exp_interp = np.interp(X, self.x[::-1], self.y[::-1], left=0, right=0)
+
+        max_exp, [low, up] = self.get_maximum()
+        idx_x_max = np.where(self.x >= low)[0][-1]
+        idx_x_min = np.where(self.x <= up)[0][0]
+
+        Graph.damp_graph(fname_ref_damp, X, Y_exp_interp)
+
+        return Y_exp_interp, idx_x_max, idx_x_min
+    
+
+
 
 
 def plot_conv_graph(graphs, protocol):
