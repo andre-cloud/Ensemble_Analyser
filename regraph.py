@@ -5,13 +5,12 @@ from src.logger import create_log
 from src.protocol import Protocol
 from src.grapher import Graph, plot_conv_graph
 import json, logging
-import argparse
+import argparse, os
 
 
 parser = argparse.ArgumentParser()
 
 parser.add_argument('idx', nargs='+', help="Protocol's number to (re-)generate the graphs")
-
 
 args = parser.parse_args()
 

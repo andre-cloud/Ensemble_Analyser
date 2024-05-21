@@ -420,7 +420,6 @@ def main():
     if os.path.exists(os.path.join(os.getcwd(), "settings.json")):
         settings = json.load(open("settings.json"))
     else:
-        print(args.output)
         settings = {
             "output": args.output,
             "cpu": args.cpu,

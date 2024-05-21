@@ -46,28 +46,31 @@ class Graph:
         # self.log.debug(self.pop)
 
         self.x = np.linspace(
-            FACTOR_EV_NM / 150, FACTOR_EV_NM / (final_lambda), 10**definition
+            FACTOR_EV_NM / (final_lambda), FACTOR_EV_NM / 150, 10**definition
         )  # eV x axis
 
         self.spectra = []
         self.filter_outputs()
 
-        self.uv_impulses = [
-            self.get_uv(i, pop) for i, pop in zip(self.spectra, self.pop)
-        ]
-        self.ecd_impulses = [
-            self.get_ecd(i, pop) for i, pop in zip(self.spectra, self.pop)
-        ]
+        self.uv_impulses = np.array(
+            [self.get_uv(i, pop) for i, pop in zip(self.spectra, self.pop)]
+        )
+        self.ecd_impulses = np.array(
+            [self.get_ecd(i, pop) for i, pop in zip(self.spectra, self.pop)]
+        )
+
+        shift_from_uv = None
 
         # creating the ECD and UV graph. If uv_ref.dat and/or ecd_ref.dat auto-convolution of the reference is performed
         if os.path.exists(os.path.join(os.getcwd(), "uv_ref.dat")):
-            uv, shift = self.auto_convolution(
+            uv, _ = self.auto_convolution(
                 os.path.join(os.getcwd(), "uv_ref.dat"),
-                fname_ref_damp=os.path.join(os.getcwd(), "uv_ref_norm_eV.dat"),
+                fname_ref_damp_norm=os.path.join(os.getcwd(), "uv_ref_norm_eV.dat"),
                 impulses=self.uv_impulses,
                 fname=f"uv_protocol_{self.protocol.number}_auto_conv.dat",
                 user_sigma=FWHM / (2 * np.sqrt(2 * np.log(2))) if FWHM else None,
                 user_shift=shift,
+                title="UV autoconvolution",
             )
         else:
             uv = self.calc_graph(
@@ -78,14 +81,16 @@ class Graph:
             )
 
         if os.path.exists(os.path.join(os.getcwd(), "ecd_ref.dat")):
-            ecd, shift = self.auto_convolution(
+            ecd, _ = self.auto_convolution(
                 os.path.join(os.getcwd(), "ecd_ref.dat"),
-                fname_ref_damp=os.path.join(os.getcwd(), "ecd_ref_norm_eV.dat"),
+                fname_ref_damp_norm=os.path.join(os.getcwd(), "ecd_ref_norm_eV.dat"),
                 impulses=self.ecd_impulses,
                 fname=f"ecd_protocol_{self.protocol.number}_auto_conv.dat",
                 user_sigma=FWHM / (2 * np.sqrt(2 * np.log(2))) if FWHM else None,
                 user_shift=shift,
                 invert=invert,
+                is_ecd=True,
+                title="ECD autoconvolution",
             )
         else:
             ecd = self.calc_graph(
@@ -264,13 +269,15 @@ class Graph:
     def auto_convolution(
         self,
         fname_ref,
-        fname_ref_damp,
+        fname_ref_damp_norm,
         impulses,
         fname,
+        title,
         norm=1,
         user_sigma=None,
         user_shift=None,
         invert=False,
+        is_ecd=False,
     ) -> np.ndarray:
         """
         Optimization to find the best fitting values for the Gaussian convolution.
@@ -278,8 +285,8 @@ class Graph:
 
         :param fname_ref: filename of the reference file
         :type fname_ref: str
-        :param fname_ref_damp: filename to save the autoconvoluted graph
-        :type fname_ref_damp: str
+        :param fname_ref_damp_norm: filename to save the autoconvoluted graph
+        :type fname_ref_damp_norm: str
         :param impulses: list of single excitation [eV, I] where I can be a UV or ECD excitation
         :type impulses: np.array((eV, I))
         :param fname: filename to save the final convoluted graph
@@ -290,52 +297,60 @@ class Graph:
         :type user_shift: float
         :param invert: invert the ECD graph when True
         :type invert: bool
+        :param is_ecd: is convoluting an ecd graph
+        :type is_ecd: bool
+        :param title: title of the section for logging purposes
+        :type title: str
 
         :return: normalized graph
         :rtype: np.array (1D array)
         """
 
-        ref = Ref_graph(fname_ref, None, invert=invert)
-        x_min, x_max = ref.x_min, ref.x_max
-        ref.y = Graph.normalise(ref.y, norm=norm)
-
         X = self.x.copy()
-        Y_exp_interp, idx_x_max, idx_x_min = ref.interpolate(X, fname_ref_damp)
-        
+        ref = Ref_graph(
+            fname_ref,
+            None,
+            invert=invert,
+            X=X,
+            fname_ref_damp_norm=fname_ref_damp_norm,
+            norm=norm,
+        )
 
-        # imp = np.array(impulses)
-        # impulses = imp.reshape((imp.shape[0]*imp.shape[1], 2))
-        # tmp = np.where((impulses[:, 0]>=x_min) & (impulses[:, 0]<=x_max))[0]
-        # print(tmp)
-        # print(impulses[np.argmax(impulses[tmp, 1])])
-        # print(max_exp)
+        x_min_index, x_max_index = ref.x_min_index, ref.x_max_index
+        if x_min_index > x_max_index:
+            x_max_index, x_min_index = x_min_index, x_max_index
 
-        dx = X[0]-X[1]
+        m = np.max(np.max(impulses, axis=2))
+        cut = np.where(impulses[:, :, 0] == m)
+        max_impulse_x = impulses[cut[0], cut[1], 0]
+
+        # dx = X[0]-X[1]
 
         def optimiser(variables):
             """
             Callback for the scipy.optimize.minimize
             """
-            (
-                sigma,
-                shift,
-            ) = variables
-            # Here the normalization!
+            (sigma, shift) = variables
+
             Y_comp = Graph.normalise(
                 self.calc_graph(
                     impulses=impulses, shift=shift, sigma=sigma, save=False
                 ),
                 norm=norm,
-                x_min=idx_x_min,
-                x_max=idx_x_max,
+                x_min=x_min_index,
+                x_max=x_max_index,
             )
 
-            diversity = self.diversity_function(Y_comp[np.where((X >= x_min) & (X <= x_max))], Y_exp_interp[np.where((X >= x_min) & (X <= x_max))], dx=dx)
+            diversity = self.diversity_function(
+                Y_comp[x_min_index:x_max_index], ref.y[x_min_index:x_max_index]
+            )
 
             return diversity
 
-        initial_guess = [0.1415, -0.000001]
-        shift = (user_shift, user_shift) if user_shift else (-1, 1)
+        in_delta = 1
+
+        initial_guess = [0.1415, in_delta]
+        shift = (user_shift, user_shift) if user_shift else (-1.5, 1.5)
         sigma = (user_sigma, user_sigma) if user_sigma else (0.08, 0.27)
         # corresponding to FWMH = (0.19, 0.64) eV
         default_guess = [0.1415, 0]  # the σ correspond to a FWHM of 0.33 eV
@@ -346,9 +361,14 @@ class Graph:
             options={"maxiter": 10000},
             method="Powell",
         )
+
+        if is_ecd:
+            result.fun = result.fun / 2
+
         if result.success:
             sigma, shift = result.x
             self.log.info(
+                title + "\n"
                 f"Convergence of parameters succeeded in {result.nfev} steps.\n"
                 f"Confidence level: {(1-result.fun)*100:.2f}%. Parameters obtained\n"
                 f"\t- σ = {sigma:.4f} eV (that correspond to a FWHM = {(sigma*np.sqrt(2*np.log(2))*2):.4f} eV)\n"
@@ -359,12 +379,13 @@ class Graph:
                     impulses=impulses, shift=shift, sigma=sigma, save=True, fname=fname
                 ),
                 norm=norm,
-                x_min=idx_x_min,
-                x_max=idx_x_max,
+                x_min=x_min_index,
+                x_max=x_max_index,
             )
 
         else:
             self.log.info(
+                title + "\n"
                 f"Convergence of parameters NOT succeeded.\n"
                 "Parameters used to convolute the saved graph\n"
                 f"\t- σ = {default_guess[0]:.4f} eV (that correspond to a FWHM = {(default_guess[0]*np.sqrt(2*np.log(2))*2):.4f} eV)\n"
@@ -375,41 +396,32 @@ class Graph:
                     impulses=impulses, shift=0, sigma=1 / 3, save=True, fname=fname
                 ),
                 norm=norm,
-                x_min=idx_x_min,
-                x_max=idx_x_max,
+                x_min=x_min_index,
+                x_max=x_max_index,
             )
 
         return Y_COMP, shift
 
-
-    def diversity_function(self, comp, ref, **kwargs) -> float: 
-
-        dx = kwargs.get('dx', 1e-5)
-        if set(ref==0) != set([False, True]):
-            
+    def diversity_function(self, comp, ref, **kwargs) -> float:
+        dx = kwargs.get("dx", 1e-5)
+        if set(ref == 0) != set([False, True]):
             # mape
             # diff = ref - comp
             # diff_p = np.abs(diff)/ref
             # diversity = np.mean(diff_p)/2
 
             # # RMSD
-            diversity = np.sqrt(
-                np.mean((comp - ref)** 2)
-            ) / 2
-
+            diversity = np.sqrt(np.mean((comp - ref) ** 2))
 
             # integrals
             # i_ref = np.trapz(np.flip(ref)**2, dx=dx)
             # i_comp = np.trapz(np.flip(comp)**2, dx=dx)
-            # diversity = np.sqrt(np.abs(i_comp-i_ref))         
+            # diversity = np.sqrt(np.abs(i_comp-i_ref))
 
-
-        else: 
+        else:
             diversity = 1
 
-        print(diversity)
         return diversity
-
 
     def calc_graph(self, impulses, sigma, shift=0, fname="", save=False) -> np.ndarray:
         """
@@ -444,7 +456,6 @@ class Graph:
                 )
 
             y += y_
-
         return y
 
     @staticmethod
@@ -500,24 +511,22 @@ class Graph:
         :return: 1D normalized array
         :rtype: np.array
         """
-        y = (
-            y
-            / (
-                np.max(
-                    [
-                        np.max(y[x_min:x_max]),
-                        np.min(y[x_min:x_max])
-                        * (-1 if np.min(y[x_min:x_max]) < 0 else 1),
-                    ]
-                )
-            )
-            * norm
+        if x_max != -1:
+            if x_min > x_max:
+                x_min, x_max = x_max, x_min
+
+        min_neg = np.min(y[x_min:x_max]) < 0
+        y_max = np.max(
+            [np.max(y[x_min:x_max]), np.min(y[x_min:x_max]) * (-1 if min_neg else 1)]
         )
 
-        plt.plot(y)
-        plt.show()
-
-        return y
+        if (
+            abs(y_max / np.max([np.max(y), np.min(y) * (-1 if np.min(y) < 0 else 1)]))
+            < 1e-20
+        ):
+            y_max = np.max([np.max(y), np.min(y) * (-1 if np.min(y) < 0 else 1)])
+        y_out = (y / y_max) * norm
+        return y_out
 
 
 class Ref_graph:
@@ -525,71 +534,84 @@ class Ref_graph:
     Load the reference graph in order to shift and convolute properly the calculated one.
     """
 
-    def __init__(self, fname: str, log, is_ev: bool = False, invert: bool = False):
+    def __init__(
+        self,
+        fname: str,
+        log,
+        X,
+        fname_ref_damp_norm: str,
+        norm: int,
+        is_ev: bool = False,
+        invert: bool = False,
+    ):
+        self.norm = norm
+
         data = np.loadtxt(fname, dtype=float)
         self.data = data[np.argsort(data[:, 0])]
+        self.x_min = float(min(data[:, 0]))
+        self.x_max = float(max(data[:, 0]))
+
         self.x = data[:, 0] if is_ev else FACTOR_EV_NM / data[:, 0]
         self.y = data[:, 1] * (1 if not invert else -1)
 
+        Y_exp_interp, self.win_high, self.win_low = self.interpolate(
+            X, fname_ref_damp_norm
+        )
+
         self.log = log
 
-    @property
-    def x_min(self):
-        return float(min(self.x))
-
-    @property
-    def x_max(self):
-        return float(max(self.x))
-
-    def get_maximum(self):
+    @staticmethod
+    def get_maximum(x, y):
         """Get the maximum between the maxima.
 
         :return: X,Y of the maximum of the maxima. This point must lay between two minima to be considered
         :rtype: tuple
         """
 
-        max_indices = argrelextrema(self.y, np.greater, order=10)[0]
-        min_indices = argrelextrema(self.y, np.less, order=10)[0]
+        y = np.abs(y)
 
-        first_nonzero_index = np.argmax(self.y != 0)
-        last_nonzero_index = len(self.y) - np.argmax(self.y[::-1] != 0) - 1
+        max_indices = argrelextrema(y, np.greater, order=10)[0]
+        min_indices = argrelextrema(y, np.less, order=10)[0]
 
-        if self.y[first_nonzero_index] >= self.y[first_nonzero_index + 1]:
+        first_nonzero_index = np.argmax(y != 0)
+        last_nonzero_index = len(y) - np.argmax(y[::-1] != 0) - 1
+
+        if y[first_nonzero_index] >= y[first_nonzero_index + 1]:
             max_indices = (
                 np.concatenate((max_indices, [first_nonzero_index]))
                 if len(max_indices) != 0
-                else np.array([self.y[0]])
+                else np.array([y[0]])
             )
-        elif self.y[first_nonzero_index] < self.y[first_nonzero_index + 1]:
+        elif y[first_nonzero_index] < y[first_nonzero_index + 1]:
             min_indices = (
                 np.concatenate((min_indices, [first_nonzero_index]))
                 if len(min_indices) != 0
-                else np.array([self.y[0]])
+                else np.array([y[0]])
             )
 
-        if self.y[last_nonzero_index] >= self.y[last_nonzero_index - 1]:
+        if y[last_nonzero_index] >= y[last_nonzero_index - 1]:
             max_indices = (
                 np.concatenate((max_indices, [last_nonzero_index]))
                 if len(max_indices) != 0
                 else np.array([last_nonzero_index])
             )
-        elif self.y[last_nonzero_index] < self.y[last_nonzero_index - 1]:
+        elif y[last_nonzero_index] < y[last_nonzero_index - 1]:
             min_indices = (
                 np.concatenate((min_indices, [last_nonzero_index]))
                 if len(min_indices) != 0
                 else np.array([last_nonzero_index])
             )
 
-        massimi = np.array([(self.x[i], self.y[i]) for i in max_indices])
+        massimi = np.array([(x[i], y[i]) for i in max_indices])
 
-        minimi = np.array([(self.x[i], self.y[i]) for i in min_indices])
+        minimi = np.array([(x[i], y[i]) for i in min_indices])
 
         max_with_minima = []
         for i in max_indices:
             left_min_index = np.argmax(min_indices < i)
             right_min_index = np.argmax(min_indices > i)
             if left_min_index >= 0 and right_min_index <= len(min_indices) - 1:
-                max_with_minima.append((self.x[i], self.y[i]))
+                max_with_minima.append((x[i], y[i]))
 
         max_with_minima = np.array(max_with_minima)
         tmp = np.argmax(max_with_minima[:, 1])
@@ -600,7 +622,7 @@ class Ref_graph:
 
         low = (
             minimi[min_min, 0][-1]
-            if len(minimi[min_min, 0]) != 0 
+            if len(minimi[min_min, 0]) != 0
             else max_with_minima[0] - 0.3
         )
         up = (
@@ -608,25 +630,103 @@ class Ref_graph:
             if len(minimi[min_max, 0]) != 0
             else max_with_minima[0] + 0.3
         )
-
         return max_with_minima, [low, up]
-    
-    def interpolate(self, X, fname_ref_damp):
 
+    def get_ref_limits_index(self):
+        lim = FACTOR_EV_NM / self.x_min
+        lower_limit = self.x[self.x <= lim]
+        lower_limit = list(self.x).index(lower_limit[-1])
+
+        lim = FACTOR_EV_NM / self.x_max
+        higher_limit = self.x[self.x >= lim]
+        higher_limit = list(self.x).index(higher_limit[0])
+
+        self.x_max_index = higher_limit
+        self.x_min_index = lower_limit
+
+    def interpolate(self, X, fname_ref_damp):
         Y_exp_interp = np.interp(X, self.x, self.y, left=0, right=0)
         if set(list(Y_exp_interp)) == set([0.0]):
             Y_exp_interp = np.interp(X, self.x[::-1], self.y[::-1], left=0, right=0)
 
-        max_exp, [low, up] = self.get_maximum()
-        idx_x_max = np.where(self.x >= low)[0][-1]
-        idx_x_min = np.where(self.x <= up)[0][0]
+        self.x = X
+        self.max_exp, [low, up] = Ref_graph.get_maximum(self.x, self.y)
+        window_low = np.where(self.x >= low)[0][-1]
+        window_high = np.where(self.x <= up)[0][0]
 
-        Graph.damp_graph(fname_ref_damp, X, Y_exp_interp)
+        self.get_ref_limits_index()
 
-        return Y_exp_interp, idx_x_max, idx_x_min
-    
+        self.y = Graph.normalise(Y_exp_interp, norm=self.norm)
+
+        Graph.damp_graph(fname_ref_damp, self.x, self.y)
+
+        return Y_exp_interp, window_low, window_high
 
 
+def create_secondary_x_axis(ax):
+    new_tick_locations = ax.get_xticks()
+    print(new_tick_locations)
+
+    def tick_function(X):
+        V = FACTOR_EV_NM / X
+        return ["%.1f" % z for z in V]
+
+    ax2 = ax.twiny()
+
+    ax2.xaxis.set_ticks_position("bottom")
+    ax2.xaxis.set_label_position("bottom")
+
+    ax2.spines["bottom"].set_position(("axes", -0.15))
+
+    ax2.set_frame_on(True)
+    ax2.patch.set_visible(False)
+
+    for sp in ax2.spines.values():
+        sp.set_visible(False)
+    ax2.spines["bottom"].set_visible(True)
+
+    ax2.set_xticks(new_tick_locations)
+    ax2.set_xticklabels(tick_function(new_tick_locations))
+    ax2.set_xlabel(r"Energy [nm]")
+    return ax2
+
+
+def main_graph(graphs, protocol, fname, output, title):
+    fig, ax = plt.subplots(1, 1)
+    ref = None
+    if os.path.exists(os.path.join(os.getcwd(), fname)):
+        ref = np.loadtxt(fname)
+        ax.plot(ref[:, 0], ref[:, 1], label="Experimental", lw=1.5)
+    for p in graphs:
+        data_uv = np.loadtxt(f"{output}_protocol_{p}.dat")
+        ax.plot(data_uv[:, 0], data_uv[:, 1], label=protocol[int(p)].functional, lw=1)
+
+    if not (ref is None):
+        if output == "uv":
+            ax.set_ylim(0, 1.2)
+        elif output == "ecd":
+            ax.set_ylim(-1.2, 1.2)
+        # pass
+
+    plt.legend(
+        loc="upper left",
+        # bbox_to_anchor=(0.5, -0.25),
+        fancybox=True,
+        shadow=True,
+        ncol=2,
+    )
+
+    ax.set_xlabel("Energy [eV]")
+
+    ax2 = create_secondary_x_axis(ax)
+    # lims = np.array([3.5, 7.5])
+    # ax.set_xlim(lims)
+    # ax2.set_xlim(FACTOR_EV_NM/lims[::-1])
+
+    plt.title(title)
+    plt.ylabel("Intenisty [a.u.]")
+    plt.tight_layout()
+    plt.savefig(f"regraphed_{output}.png", dpi=300)
 
 
 def plot_conv_graph(graphs, protocol):
@@ -638,51 +738,10 @@ def plot_conv_graph(graphs, protocol):
     :type protocol: list[Protocol]
     """
 
-    fig, ax = plt.subplots(1, 1)
-    ref = None
-    if os.path.exists(os.path.join(os.getcwd(), "uv_ref_norm_eV.dat")):
-        ref = np.loadtxt("uv_ref_norm_eV.dat")
-        ax.plot(ref[:, 0], ref[:, 1], label="Experiment", lw=1.5)
-    for p in graphs:
-        data_uv = np.loadtxt(f"uv_protocol_{p}.dat")
-        ax.plot(data_uv[:, 0], data_uv[:, 1], label=protocol[int(p)].functional, lw=1)
+    main_graph(graphs, protocol, "uv_ref_norm_eV.dat", "uv", "UV comparison graph")
+    main_graph(graphs, protocol, "ecd_ref_norm_eV.dat", "ecd", "ECD comparison graph")
 
-    if not (ref is None):
-        ax.set_ylim(0, 1.2)
-    plt.legend(
-        loc="upper center",
-        bbox_to_anchor=(0.5, -0.13),
-        fancybox=True,
-        shadow=True,
-        ncol=4,
-    )
-    plt.title("UV comparison graph")
-    plt.xlabel("Energy [eV]")
-    plt.ylabel("Intenisty [a.u.]")
-    plt.tight_layout()
-    plt.savefig("regraphed_uv.png", dpi=300)
 
-    fig, ax = plt.subplots(1, 1)
-    ref = None
-    if os.path.exists(os.path.join(os.getcwd(), "ecd_ref_norm_eV.dat")):
-        ref = np.loadtxt("ecd_ref_norm_eV.dat")
-        ax.plot(ref[:, 0], ref[:, 1], label="Experiment", lw=1.5)
-    for p in graphs:
-        data_uv = np.loadtxt(f"ecd_protocol_{p}.dat")
-        ax.plot(data_uv[:, 0], data_uv[:, 1], label=protocol[int(p)].functional, lw=1)
-
-    if not (ref is None):
-        ax.set_ylim(-1.2, 1.2)
-
-    plt.legend(
-        loc="upper center",
-        bbox_to_anchor=(0.5, -0.13),
-        fancybox=True,
-        shadow=True,
-        ncol=4,
-    )
-    plt.title("ECD comparison graph")
-    plt.xlabel("Energy [eV]")
-    plt.ylabel("Intenisty [a.u.]")
-    plt.tight_layout()
-    plt.savefig("regraphed_ecd.png", dpi=300)
+if __name__ == "__main__":
+    X = np.linspace(FACTOR_EV_NM / 150, FACTOR_EV_NM / 800, 10**4)
+    Ref_graph("_ref.dat", None, X=X, fname_ref_damp_norm="None", norm=1)
