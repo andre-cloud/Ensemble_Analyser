@@ -7,6 +7,7 @@ import scipy.optimize as opt
 from scipy.signal import argrelextrema
 from scipy.constants import c, h, electron_volt, R
 import matplotlib.pyplot as plt
+import matplotlib.transforms as mtransforms
 from typing import Union
 
 plt.set_loglevel("error")
@@ -663,36 +664,12 @@ class Ref_graph:
         return Y_exp_interp, window_low, window_high
 
 
-def create_secondary_x_axis(ax):
-    new_tick_locations = ax.get_xticks()
-    print(new_tick_locations)
-
-    def tick_function(X):
-        V = FACTOR_EV_NM / X
-        return ["%.1f" % z for z in V]
-
-    ax2 = ax.twiny()
-
-    ax2.xaxis.set_ticks_position("bottom")
-    ax2.xaxis.set_label_position("bottom")
-
-    ax2.spines["bottom"].set_position(("axes", -0.15))
-
-    ax2.set_frame_on(True)
-    ax2.patch.set_visible(False)
-
-    for sp in ax2.spines.values():
-        sp.set_visible(False)
-    ax2.spines["bottom"].set_visible(True)
-
-    ax2.set_xticks(new_tick_locations)
-    ax2.set_xticklabels(tick_function(new_tick_locations))
-    ax2.set_xlabel(r"Energy [nm]")
-    return ax2
+def eV_to_nm(eV):
+    return FACTOR_EV_NM / eV
 
 
 def main_graph(graphs, protocol, fname, output, title):
-    fig, ax = plt.subplots(1, 1)
+    fig, ax = plt.subplots(1, 1, dpi=300)
     ref = None
     if os.path.exists(os.path.join(os.getcwd(), fname)):
         ref = np.loadtxt(fname)
@@ -718,11 +695,14 @@ def main_graph(graphs, protocol, fname, output, title):
 
     ax.set_xlabel("Energy [eV]")
 
-    ax2 = create_secondary_x_axis(ax)
-    # lims = np.array([3.5, 7.5])
-    # ax.set_xlim(lims)
-    # ax2.set_xlim(FACTOR_EV_NM/lims[::-1])
+    ax2 = ax.secondary_xaxis('bottom', functions=(eV_to_nm, eV_to_nm))
+    p = ax.get_position()
+    # p = [p.x0, p.y0-0.5]
+    ax2.spines['bottom'].set_position(("outward", p.y0+0.073*fig.dpi))
 
+    ax2.set_xlabel("Wavelength (nm)")
+
+    ax.set_xlim(1.8)
     plt.title(title)
     plt.ylabel("Intenisty [a.u.]")
     plt.tight_layout()
