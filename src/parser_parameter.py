@@ -196,6 +196,8 @@ def get_conf_parameters(conf, number: int, p, time, temp: float, log) -> bool:
                 )
             else:
                 g = free_gibbs_energy(
+                    SCF=e, T=temp, freq=freq, mw=conf.weight_mass, B=B, m=conf.mult
+                )
         else:
             g = free_gibbs_energy(
                 SCF=e, T=temp, freq=freq, mw=conf.weight_mass, B=B, m=conf.mult
