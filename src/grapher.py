@@ -351,9 +351,22 @@ class Graph:
         in_delta = 1
 
         initial_guess = [0.1415, in_delta]
-        shift = (user_shift, user_shift) if user_shift else (-1.5, 1.5)
-        sigma = (user_sigma, user_sigma) if user_sigma else (0.08, 0.27)
-        # corresponding to FWMH = (0.19, 0.64) eV
+        if user_shift: 
+            if type(user_shift) in (tuple, list):
+                shift = user_shift
+            else:
+                shift = (user_shift, user_shift)
+        else:
+            shift= (-1.5, 1.5)
+
+        if user_sigma: 
+            if type(user_sigma) in (tuple, list):
+                sigma = user_sigma
+            else:
+                sigma = (user_sigma, user_sigma)
+        else:
+            sigma= (0.08, 0.27) # corresponding to FWMH = (0.19, 0.64) eV
+            
         default_guess = [0.1415, 0]  # the σ correspond to a FWHM of 0.33 eV
         result = opt.minimize(
             optimiser,
