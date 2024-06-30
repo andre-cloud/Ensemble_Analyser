@@ -359,8 +359,8 @@ class Graph:
         else:
             shift= (-1.5, 1.5)
 
-        if user_sigma is not None: 
-            if type(user_sigma) in (tuple, list):
+        if user_sigma is not None:  
+            if type(user_sigma) in (tuple, list, np.array):
                 sigma = tuple(user_sigma[0], user_sigma[1])
             else:
                 sigma = (user_sigma, user_sigma)
