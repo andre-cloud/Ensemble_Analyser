@@ -351,7 +351,7 @@ class Graph:
         in_delta = 1
 
         initial_guess = [0.1415, in_delta]
-        if user_shift not None: 
+        if user_shift is not None: 
             if type(user_shift) in (tuple, list):
                 shift = user_shift
             else:
@@ -359,7 +359,7 @@ class Graph:
         else:
             shift= (-1.5, 1.5)
 
-        if user_sigma not None: 
+        if user_sigma is not None: 
             if type(user_sigma) in (tuple, list):
                 sigma = user_sigma
             else:
