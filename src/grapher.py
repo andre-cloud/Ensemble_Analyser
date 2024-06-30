@@ -324,6 +324,8 @@ class Graph:
         m = np.max(np.max(impulses, axis=2))
         cut = np.where(impulses[:, :, 0] == m)
         max_impulse_x = impulses[cut[0], cut[1], 0]
+        user_shift = list(user_shift)
+        user_sigma = list(user_sigma)
 
         # dx = X[0]-X[1]
 
@@ -352,18 +354,18 @@ class Graph:
 
         initial_guess = [0.1415, in_delta]
         if user_shift is not None: 
-            if type(user_shift) in (tuple, list, np.array) :
-                shift = (user_shift[0], user_shift[1])
+            if len(user_shift) > 1:
+                shift = user_shift
             else:
-                shift = (user_shift, user_shift)
+                shift = user_shift * 2
         else:
             shift= (-1.5, 1.5)
 
         if user_sigma is not None:  
-            if type(user_sigma) in (tuple, list, np.array):
-                sigma = (user_sigma[0], user_sigma[1])
+            if len(user_sigma) > 1:
+                sigma = user_sigma
             else:
-                sigma = (user_sigma, user_sigma)
+                sigma = user_sigma * 2
         else:
             sigma= (0.08, 0.27) # corresponding to FWMH = (0.19, 0.64) eV
 
