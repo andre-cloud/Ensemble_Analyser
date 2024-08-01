@@ -3,7 +3,7 @@ import json
 import os
 
 
-def _parse_xyz_str(fl: str):
+def _parse_xyz_str(fl: str, raw=False):
     """
     Parse an xyz geom descriptor
 
@@ -13,13 +13,16 @@ def _parse_xyz_str(fl: str):
     :return: list of atoms, XYZ position of the atoms
     :rtype: tuple
     """
+    e = None
+    if raw:
+        e = float(fl[1].strip())
     fl = fl[2:]
     atoms, geom = [], []
     for line in fl:
         a, *g = line.split()
         atoms.append(a)
         geom.append(g)
-    return np.array(atoms), np.array(geom, dtype=float)
+    return np.array(atoms), np.array(geom, dtype=float), e
 
 
 def mkdir(directory: str):
@@ -34,7 +37,7 @@ def mkdir(directory: str):
     if os.path.exists(directory):
         raise IOError(f"Directory {directory} already exists. Going to exit!")
         # shutil.rmtree(directory)
-    os.mkdir(directory)
+    os.makedirs(directory, exist_ok=True)
     return None
 
 

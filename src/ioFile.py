@@ -26,7 +26,7 @@ def convert_file(file) -> str:
     return output
 
 
-def read_ensemble(file, charge, multiplicity, log) -> list:
+def read_ensemble(file, charge, multiplicity, log, raw=False) -> list:
     """
     Read the initial ensemble and return the ensemble list
     Not only XYZ file is supported. OBABEL is required
@@ -58,10 +58,12 @@ def read_ensemble(file, charge, multiplicity, log) -> list:
     for i in range(0, len(fl) + 1, n_atoms + 2):
         if i == old_idx:
             continue
-        atoms, geom = _parse_xyz_str(fl[old_idx:i])
+        atoms, geom, e = _parse_xyz_str(fl[old_idx:i], raw=raw)
         confs.append(
             Conformer(counter, geom=geom, atoms=atoms, charge=charge, mult=multiplicity)
         )
+        if raw: 
+            confs[-1].energies = {"0": {'E': e*627.51, 'G' : e*627.51}}
         old_idx = i
         counter += 1
 

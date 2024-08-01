@@ -369,7 +369,6 @@ class Graph:
         else:
             sigma= (0.08, 0.27) # corresponding to FWMH = (0.19, 0.64) eV
 
-        print(sigma)
         default_guess = [0.1415, 0]  # the σ correspond to a FWHM of 0.33 eV
         result = opt.minimize(
             optimiser,

@@ -7,10 +7,29 @@ from matplotlib.lines import Line2D
 from typing import Union
 import matplotlib.gridspec as gridspec
 from scipy.interpolate import griddata
+from scipy.spatial import distance_matrix
+
+import sys
 
 plt.set_loglevel("error")
 
 MARKERS = list(Line2D.markers.keys())
+
+
+def calc_distance_matrix(coords):
+    dist = np.zeros((coords.shape[0], coords.shape[1], coords.shape[1]))
+    evalue_dist, evector_dist = [], []
+
+
+    for idx, _ in enumerate(coords): 
+        c = coords[idx]
+        dist[idx] = distance_matrix(c, c)
+        eva, eve = np.linalg.eig(dist[idx])
+        evalue_dist.append(eva)
+        evector_dist.append(eve)
+        
+    return np.array(evalue_dist), np.array(evector_dist)
+
 
 
 def get_best_ncluster(coords):
@@ -26,6 +45,7 @@ def get_best_ncluster(coords):
 
     k_range = range(10, 30)
     silhouette_scores = []
+
     for k in k_range:
         kmeans = KMeans(n_clusters=k, n_init=10)
         labels = kmeans.fit_predict(coords)
@@ -57,21 +77,18 @@ def calc_pca(confs: list, cluster=False, ncluster: Union[int, None] = None) -> t
     energy = np.array([conf.get_energy for conf in confs])
     energy -= min(energy)
 
-    coords_2d = np.reshape(data, (data.shape[0], data.shape[1] * data.shape[2]))
-
-    # normalize it to have mean=0 and variance=1
-    coords_2d = (coords_2d - np.mean(coords_2d, axis=0)) / np.std(coords_2d, axis=0)
+    evalue_dist, _ = calc_distance_matrix(data)
 
     # perform PCA analysis with number of components as minimum between number of
     # n. confs and whole geom
-    pca = PCA(n_components=min(coords_2d.shape[0], coords_2d.shape[1]))
-    pca.fit(coords_2d)
-    pca_scores = pca.transform(coords_2d)
+    pca = PCA(n_components=min(evalue_dist.shape[0], evalue_dist.shape[1]))
+    pca.fit(evalue_dist)
+    pca_scores = pca.transform(evalue_dist)
 
     # getting the best number of clusters or create an array of 1
     if cluster:
         if not ncluster:
-            n_c = get_best_ncluster(coords_2d)
+            n_c = get_best_ncluster(evalue_dist)
         else:
             n_c = ncluster
 
@@ -204,7 +221,7 @@ def perform_PCA(confs: list, ncluster: int, fname: str, title: str, log) -> None
     nc = ncluster if len(confs) > ncluster else len(confs) - 1
     if nc <= 2:
         return None
-    pca_scores, clusters, colors, numbers, energy = calc_pca(confs, ncluster=nc)
+    pca_scores, clusters, colors, numbers, energy = calc_pca(confs, ncluster=nc, cluster=True)
     save_PCA_snapshot(fname, title, pca_scores, clusters, colors, numbers, energy)
 
     return None
@@ -215,5 +232,5 @@ if __name__ == "__main__":  # pragma: no cover:
     import mock
 
     # Load the XYZ file
-    xyz_file = read_ensemble("files/ensemble.xyz", 0, 1, mock.MagicMock())
+    xyz_file = read_ensemble("files/ensemble.xyz", 0, 1, mock.MagicMock(), raw=True)
     perform_PCA(xyz_file, 5, "files/test.png", "Test", mock.MagicMock())
